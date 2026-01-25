@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LINK Expert | Majdoul Tower OS</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.min.js"></script>
+    <style>
+        :root {
+            --royal-black: #0a0a0a;
+            --royal-gold: #d4af37;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(212, 175, 55, 0.3);
+            --text-gold: #f1d279;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background: var(--royal-black);
+            color: white;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Login Overlay */
+        #login-overlay {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        input {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid var(--royal-gold);
+            color: var(--royal-gold);
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            width: 80%;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+
+        button {
+            background: var(--royal-gold);
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover { opacity: 0.8; transform: translateY(-2px); }
+
+        /* Main Layout */
+        #app-shell {
+            display: none;
+            height: 100vh;
+            display: grid;
+            grid-template-columns: 250px 1fr;
+        }
+
+        nav {
+            border-right: 1px solid var(--glass-border);
+            padding: 20px;
+            background: rgba(0,0,0,0.4);
+        }
+
+        .nav-item {
+            padding: 15px;
+            margin: 10px 0;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+            color: var(--text-gold);
+        }
+
+        main {
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        /* Permit Styling */
+        .permit-card {
+            width: 350px;
+            background: white;
+            color: black;
+            padding: 20px;
+            border-radius: 10px;
+            position: relative;
+            margin: 20px auto;
+            border-left: 10px solid var(--royal-gold);
+        }
+
+        .qr-placeholder {
+            width: 80px;
+            height: 80px;
+            background: #eee;
+            float: right;
+            border: 1px solid #ccc;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.8rem;
+        }
+
+        th, td { border: 1px solid #ddd; padding: 5px; }
+
+        @media (max-width: 768px) {
+            #app-shell { grid-template-columns: 1fr; }
+            nav { display: none; } /* Mobile toggle would go here */
+        }
+    </style>
+</head>
+<body>
+
+<div id="login-overlay">
+    <div class="glass-card">
+        <h1 style="color: var(--royal-gold)">MAJDOUL TOWER</h1>
+        <p>LINK Expert Operations</p>
+        <input type="password" id="passkey" placeholder="Enter Passkey">
+        <br>
+        <button onclick="checkPass()">ENTER SYSTEM</button>
+    </div>
+</div>
+
+<div id="app-shell">
+    <nav>
+        <h2 style="color: var(--royal-gold)">LINK Expert</h2>
+        <div class="nav-item" onclick="showSection('dash')">Dashboard</div>
+        <div class="nav-item" onclick="showSection('inventory')">Vehicle Inventory</div>
+        <div class="nav-item" onclick="showSection('permits')">Permit Generator</div>
+        <div class="nav-item" onclick="showSection('attendance')">Attendance</div>
+        <div class="nav-item" onclick="location.reload()">Logout</div>
+    </nav>
+
+    <main id="main-content">
+        <section id="dash">
+            <h1>Operational Overview</h1>
+            <div class="dashboard-grid">
+                <div class="glass-card">
+                    <h3>Current Shift</h3>
+                    <p id="shift-info">Loading...</p>
+                </div>
+                <div class="glass-card">
+                    <h3>Import Vehicle Data</h3>
+                    <input type="file" id="csvFile" accept=".csv" style="font-size: 0.8rem;">
+                    <button onclick="handleFiles()">Process CSV</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="permits" style="display:none;">
+            <h1>Permit Management</h1>
+            <div class="glass-card" style="text-align: left;">
+                <label>Company:</label> <input type="text" id="p-comp" placeholder="Company Name" style="width: 100%"><br>
+                <label>Type:</label>
+                <select id="p-type" style="width: 100%; padding: 10px; margin: 10px 0;">
+                    <option value="Labor">Labor Entry</option>
+                    <option value="Material-In">Material Entry</option>
+                    <option value="Material-Out">Material Exit</option>
+                </select>
+                <button onclick="generatePermit()">Generate Digital Card</button>
+            </div>
+
+            <div id="permit-preview"></div>
+            <button id="download-btn" style="display:none; margin-top:20px;" onclick="exportPermit()">Export as Image</button>
+        </section>
+
+        <section id="inventory" style="display:none;">
+            <h1>Parking Inventory</h1>
+            <div id="vehicle-table-container"></div>
+        </section>
+
+        <section id="attendance" style="display:none;">
+            <h1>LINK Expert Attendance</h1>
+            <div class="glass-card">
+                <p><strong>Total Staff:</strong> 19 Morning / 9 Night</p>
+                <table>
+                    <thead>
+                        <tr><th>Role</th><th>Shift Status</th><th>Action</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Operation Manager</td><td>On-Site</td><td><button>Check-Out</button></td></tr>
+                        <tr><td>Supervisor</td><td>On-Site</td><td><button>Check-Out</button></td></tr>
+                        <tr><td>Traffic Marshal</td><td>Pending</td><td><button>Check-In</button></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script>
+    const AUTH_KEY = "0107";
+
+    function checkPass() {
+        const input = document.getElementById('passkey').value;
+        if(input === AUTH_KEY) {
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('app-shell').style.display = 'grid';
+            updateShift();
+        } else {
+            alert("Unauthorized Access");
+        }
+    }
+
+    function showSection(id) {
+        document.querySelectorAll('section').forEach(s => s.style.display = 'none');
+        document.getElementById(id).style.display = 'block';
+    }
+
+    function updateShift() {
+        const day = new Date().getDay();
+        const isWeekend = (day === 5 || day === 6); // Fri-Sat
+        const morning = isWeekend ? 10 : 19;
+        const night = 9;
+        document.getElementById('shift-info').innerHTML = `
+            <strong>${isWeekend ? 'Weekend' : 'Weekday'} Schedule</strong><br>
+            Morning: ${morning} Staff<br>
+            Night: ${night} Staff
+        `;
+    }
+
+    // CSV Handler
+    function handleFiles() {
+        const file = document.getElementById('csvFile').files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const rows = e.target.result.split("\n");
+            let html = "<table><thead><tr><th>Client</th><th>Plate</th><th>Model</th><th>Employee</th></tr></thead><tbody>";
+            for(let i = 1; i < rows.length; i++) {
+                const cols = rows[i].split(",");
+                if(cols.length > 1) {
+                    html += `<tr><td>${cols[0]}</td><td>${cols[1]}</td><td>${cols[2]}</td><td>${cols[4]}</td></tr>`;
+                }
+            }
+            html += "</tbody></table>";
+            document.getElementById('vehicle-table-container').innerHTML = html;
+            alert("Data Imported Successfully");
+            showSection('inventory');
+        };
+        reader.readAsText(file);
+    }
+
+    // Permit Generator
+    function generatePermit() {
+        const comp = document.getElementById('p-comp').value;
+        const type = document.getElementById('p-type').value;
+        const date = new Date().toLocaleDateString();
+
+        let tableContent = type === 'Labor' ? `
+            <table>
+                <tr><th>Name</th><th>ID No</th><th>Job</th></tr>
+                <tr><td>...</td><td>...</td><td>...</td></tr>
+            </table>
+        ` : `<p>Material Description: ________________</p>`;
+
+        document.getElementById('permit-preview').innerHTML = `
+            <div id="capture-area" class="permit-card">
+                <div class="qr-placeholder">QR CODE</div>
+                <h2 style="margin:0">${type} PERMIT</h2>
+                <p><strong>Majdoul Tower</strong></p>
+                <hr>
+                <p>Company: ${comp}</p>
+                <p>Date: ${date}</p>
+                ${tableContent}
+                <p style="font-size:0.6rem; margin-top:20px;">Issued by LINK Expert Operations</p>
+            </div>
+        `;
+        document.getElementById('download-btn').style.display = 'block';
+    }
+
+    function exportPermit() {
+        html2canvas(document.querySelector("#capture-area")).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'Majdoul_Permit.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+    }
+</script>
+</body>
+</html>
