@@ -95,64 +95,51 @@
     </nav>
 
     <script>
-        // ضع رابط السكربت (الذي ينتهي بـ exec) هنا
-        const scriptURL = "https://script.google.com/macros/s/AKfycbz21z4_jviYamObvLbA6xVy87UR6PLe2jrEjJQ-mwZfDw-TNALRgr6dqhrP_HoXW4Ig/exec
-"; 
+        const scriptURL = "https://script.google.com/macros/s/AKfycbz21z4_jviYamObvLbA6xVy87UR6PLe2jrEjJQ-mwZfDw-TNALRgr6dqhrP_HoXW4Ig/exec"; 
+        const ADMIN_PASSWORD = "0809";
 
-const ADMIN_PASSWORD = "0809"; // استبدل 123 بكلمة السر التي تريدها
+        let db = [];
+        let logs = [];
+        let activeCar = null;
 
-let db = [];
-let logs = [];
-let activeCar = null;
+        async function loadData() {
+            try {
+                const res = await fetch(scriptURL);
+                db = await res.json();
+                console.log("Data Loaded Successfully");
+            } catch(e) { console.error("Error loading data"); }
+        }
 
-// ... (دالة loadData و doSearch تبقى كما هي) ...
+        function doSearch() {
+            const q = document.getElementById('mainSearch').value.toLowerCase();
+            const container = document.getElementById('cardsResult');
+            container.innerHTML = '';
+            if(!q) return;
 
-async function saveEdits() {
-    // 1. طلب كلمة السر قبل البدء
-    const userPassword = prompt("يرجى إدخال كلمة السر لاعتماد التعديلات:");
-    
-    if (userPassword === null) return; // إذا ضغط إلغاء
-    
-    if (userPassword !== ADMIN_PASSWORD) {
-        alert("كلمة السر خاطئة! لا يمكن التعديل.");
-        return;
-    }
+            const filtered = db.filter(i => 
+                (i.plate && i.plate.toLowerCase().includes(q)) || 
+                (i.emp && i.emp.toLowerCase().includes(q))
+            );
 
-    // 2. إذا كانت كلمة السر صحيحة، يبدأ إجراء الحفظ
-    const idx = document.getElementById('edit-index').value;
-    const updated = {
-        emp: document.getElementById('edit-emp').value,
-        plate: document.getElementById('edit-plate').value,
-        client: document.getElementById('edit-client').value,
-        model: document.getElementById('edit-model').value
-    };
-
-    const btn = document.getElementById('saveBtn');
-    const originalText = btn.innerText;
-    btn.innerText = "جاري الاعتماد والحفظ..."; 
-    btn.disabled = true;
-
-    try {
-        // إرسال البيانات إلى Google Sheets
-        await fetch(scriptURL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify(updated)
-        });
-
-        // تحديث قاعدة البيانات المحلية
-        db[idx] = {...db[idx], ...updated};
-        
-        alert("✅ تم التأكد من كلمة السر وتحديث البيانات في Google Sheets بنجاح");
-        closeEditModal();
-        doSearch();
-    } catch(e) { 
-        alert("❌ فشل الاتصال بقاعدة البيانات"); 
-    } finally { 
-        btn.innerText = originalText; 
-        btn.disabled = false; 
-    }
-}
+            filtered.slice(0, 10).forEach(item => {
+                const realIdx = db.findIndex(x => x.plate === item.plate);
+                const isActive = item.status && (item.status.includes('نشط') || item.status.toLowerCase().includes('active'));
+                const card = document.createElement('div');
+                card.className = `car-card ${isActive ? 'active-status' : ''}`;
+                card.innerHTML = `
+                    <i class="fas fa-edit edit-icon" onclick="openEdit(${realIdx}); event.stopPropagation();"></i>
+                    <h3>${item.plate}</h3>
+                    <p><b>الموظف:</b> ${item.emp}</p>
+                    <p><b>الشركة:</b> ${item.client}</p>
+                `;
+                card.onclick = () => {
+                    activeCar = item;
+                    document.getElementById('selectedLabel').value = item.plate;
+                    switchPage('page-inventory', document.querySelectorAll('.nav-tab')[1]);
+                };
+                container.appendChild(card);
+            });
+        }
 
         function openEdit(idx) {
             const item = db[idx];
@@ -167,6 +154,13 @@ async function saveEdits() {
         function closeEditModal() { document.getElementById('editModal').style.display = 'none'; }
 
         async function saveEdits() {
+            const userPassword = prompt("يرجى إدخال كلمة السر لاعتماد التعديلات:");
+            if (userPassword === null) return;
+            if (userPassword !== ADMIN_PASSWORD) {
+                alert("كلمة السر خاطئة!");
+                return;
+            }
+
             const idx = document.getElementById('edit-idx').value;
             const updated = {
                 emp: document.getElementById('edit-emp').value,
@@ -189,7 +183,7 @@ async function saveEdits() {
                 closeEditModal();
                 doSearch();
             } catch(e) { alert("فشل الاتصال"); }
-            finally { btn.innerText = "حفظ التعديلات"; btn.disabled = false; }
+            finally { btn.innerText = "حفظ في جوجل شيت"; btn.disabled = false; }
         }
 
         function switchPage(p, el) {
@@ -201,7 +195,9 @@ async function saveEdits() {
 
         function confirmEntry() {
             if(!activeCar) return alert("اختر سيارة أولاً");
-            alert(`تم تسجيل ${activeCar.plate} في موقف ${document.getElementById('slotNo').value}`);
+            const slot = document.getElementById('slotNo').value;
+            if(!slot) return alert("أدخل رقم الموقف");
+            alert(`تم تسجيل ${activeCar.plate} في موقف ${slot}`);
         }
 
         loadData();
