@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Link Expert - Majdoul Terminal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --bg: #000000;
             --surface: #0a0a0a;
-            --liquid-glass: rgba(15, 15, 15, 0.8);
+            --liquid-glass: rgba(18, 18, 18, 0.8);
             --gold: #d4af37;
             --gold-light: #f1d592;
             --gold-glow: rgba(212, 175, 55, 0.2);
@@ -20,20 +22,9 @@
             --transition: 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        [data-theme="light"] {
-            --bg: #f2f2f7;
-            --surface: #ffffff;
-            --liquid-glass: rgba(255, 255, 255, 0.85);
-            --gold: #996515;
-            --gold-light: #b8860b;
-            --text: #000000;
-            --text-dim: #636366;
-        }
-
         body {
             margin: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
-            background: var(--bg); color: var(--text); transition: background var(--transition);
-            min-height: 100vh; overflow-x: hidden;
+            background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden;
         }
 
         /* Watchdog Alarm Animation */
@@ -42,62 +33,70 @@
             70% { box-shadow: 0 0 0 20px rgba(255, 59, 48, 0); }
             100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
         }
-        .alarm-active { background: rgba(255, 59, 48, 0.1) !important; animation: pulse-red 1s infinite; border: 2px solid var(--danger) !important; }
+        .alarm-active { background: rgba(255, 59, 48, 0.15) !important; animation: pulse-red 1s infinite; border: 2px solid var(--danger) !important; }
 
+        /* Elegant Header with Logo */
         header {
-            padding: 50px 25px 25px; background: var(--liquid-glass); backdrop-filter: blur(30px);
+            padding: 60px 25px 25px; background: var(--liquid-glass); backdrop-filter: blur(30px);
             position: sticky; top: 0; z-index: 1000; border-bottom: 0.5px solid var(--gold-glow);
-            display: flex; justify-content: space-between; align-items: center;
+            display: flex; flex-direction: column; align-items: center; gap: 15px;
         }
-        .logo-box b { color: var(--gold); font-size: 10px; letter-spacing: 3px; display: block; }
-        .logo-box h1 { margin: 0; font-size: 22px; font-weight: 800; background: linear-gradient(to right, var(--gold), var(--gold-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        .logo-svg { width: 60px; height: 60px; filter: drop-shadow(0 0 10px var(--gold-glow)); }
+        .brand-name { text-align: center; }
+        .brand-name h1 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: 1px; color: var(--gold-light); }
+        .brand-name span { font-size: 10px; color: var(--gold); letter-spacing: 4px; text-transform: uppercase; font-weight: 700; }
 
         .container { padding: 20px; max-width: 900px; margin: 0 auto; padding-bottom: 120px; }
 
         /* Dashboard Stats */
         .smart-dash { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 25px; }
-        .stat-item { background: var(--liquid-glass); padding: 18px; border-radius: 25px; border: 1px solid var(--gold-glow); text-align: center; }
-        .stat-item h4 { margin: 0; font-size: 24px; color: var(--gold); }
+        .stat-item { 
+            background: linear-gradient(145deg, #0f0f0f, #050505); 
+            padding: 18px; border-radius: 25px; border: 1px solid var(--gold-glow); text-align: center; 
+        }
+        .stat-item h4 { margin: 0; font-size: 24px; color: var(--gold); text-shadow: 0 0 10px var(--gold-glow); }
         .stat-item span { font-size: 9px; color: var(--text-dim); text-transform: uppercase; font-weight: 700; }
 
         /* Liquid Search */
         .search-container {
             background: var(--liquid-glass); border-radius: 25px; padding: 12px 20px;
             display: flex; align-items: center; border: 1px solid var(--gold-glow); margin-bottom: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
         .search-container input { background: none; border: none; color: var(--text); width: 100%; font-size: 18px; outline: none; padding-left: 15px; }
 
         /* Cards Layout */
         .results-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
         .card {
-            background: var(--liquid-glass); border-radius: 30px; padding: 25px; border: 1px solid var(--gold-glow);
+            background: linear-gradient(160deg, rgba(20,20,20,0.9), rgba(5,5,5,0.9)); 
+            border-radius: 30px; padding: 25px; border: 1px solid var(--gold-glow);
             position: relative; transition: var(--transition);
         }
-        .card-header { display: flex; justify-content: space-between; margin-bottom: 15px; }
-        .plate-ui { font-size: 28px; font-weight: 900; letter-spacing: 2px; }
+        .card-header { display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid var(--gold-glow); padding-bottom: 10px; }
+        .plate-ui { font-size: 28px; font-weight: 900; letter-spacing: 2px; color: #fff; }
         
-        .zone-tag { background: var(--gold); color: #000; padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 900; }
+        .zone-tag { background: var(--gold); color: #000; padding: 4px 12px; border-radius: 10px; font-size: 10px; font-weight: 900; }
 
-        .details-box { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; padding-top: 15px; border-top: 0.5px solid var(--gold-glow); }
-        .details-box label { display: block; font-size: 9px; color: var(--gold); margin-bottom: 3px; }
-        .details-box div { font-size: 14px; font-weight: 600; }
+        .details-box { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+        .details-box label { display: block; font-size: 9px; color: var(--gold); margin-bottom: 3px; font-weight: 800; }
+        .details-box div { font-size: 14px; font-weight: 600; color: #eee; }
 
         /* Activity Log List */
         .log-list { background: var(--liquid-glass); border-radius: 25px; overflow: hidden; border: 1px solid var(--gold-glow); }
         .log-entry { padding: 15px 20px; border-bottom: 0.5px solid var(--gold-glow); display: flex; justify-content: space-between; font-size: 13px; }
-        .log-entry:last-child { border: none; }
 
         /* Floating Button */
         .fab {
             position: fixed; bottom: 100px; right: 25px; width: 65px; height: 65px; border-radius: 22px;
             background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: #000;
             display: flex; align-items: center; justify-content: center; font-size: 26px; z-index: 1001; cursor: pointer;
+            box-shadow: 0 10px 30px var(--gold-glow);
         }
 
         /* Nav */
         nav {
-            position: fixed; bottom: 0; width: 100%; height: 90px; background: var(--liquid-glass); backdrop-filter: blur(30px);
+            position: fixed; bottom: 0; width: 100%; height: 90px; background: rgba(10,10,10,0.9); backdrop-filter: blur(30px);
             border-top: 1px solid var(--gold-glow); display: flex; justify-content: space-around; padding-top: 10px;
         }
         .nav-item { flex: 1; text-align: center; color: var(--text-dim); font-size: 11px; cursor: pointer; transition: 0.3s; }
@@ -107,18 +106,21 @@
         /* Modal */
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
         .modal-content { background: var(--surface); border-radius: 35px; width: 100%; max-width: 450px; padding: 30px; border: 1.5px solid var(--gold); }
-        .m-input { width: 100%; padding: 15px; background: var(--liquid-glass); border: 1px solid var(--gold-glow); border-radius: 15px; color: var(--text); margin-bottom: 12px; box-sizing: border-box; outline: none; }
+        .m-input { width: 100%; padding: 15px; background: #111; border: 1px solid var(--gold-glow); border-radius: 15px; color: var(--text); margin-bottom: 12px; box-sizing: border-box; outline: none; }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="logo-box">
-            <b>LINK EXPERT</b>
+        <svg class="logo-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 15L65 35H35L50 15Z" fill="#D4AF37"/>
+            <path d="M25 40L35 30L45 40V70H25V40Z" fill="#D4AF37"/>
+            <path d="M55 40L65 30L75 40V70H55V40Z" fill="#D4AF37"/>
+            <rect x="20" y="75" width="60" height="5" rx="2" fill="#D4AF37"/>
+        </svg>
+        <div class="brand-name">
             <h1>Majdoul Terminal</h1>
-        </div>
-        <div style="display:flex; gap:10px;">
-            <div class="nav-item" onclick="toggleTheme()" style="background:var(--gold-glow); padding:10px; border-radius:12px; color:var(--gold);"><i class="fa-solid fa-circle-half-stroke" style="margin:0"></i></div>
+            <span>Link Expert</span>
         </div>
     </header>
 
@@ -131,27 +133,27 @@
             </div>
 
             <div class="search-container">
-                <i class="fa-solid fa-radar" style="color:var(--gold)"></i>
-                <input type="text" id="masterSearch" placeholder="Scan Plate or Identity..." oninput="watchdogSearch()">
+                <i class="fa-solid fa-bolt" style="color:var(--gold)"></i>
+                <input type="text" id="masterSearch" placeholder="Search Plate or Name..." oninput="watchdogSearch()">
             </div>
 
             <div id="resultsView" class="results-grid">
-                <div style="text-align:center; padding:100px 0; opacity:0.1; grid-column:1/-1;">
-                    <i class="fa-solid fa-fingerprint" style="font-size:80px;"></i>
+                <div style="text-align:center; padding:100px 0; opacity:0.2; grid-column:1/-1;">
+                    <i class="fa-solid fa-fingerprint" style="font-size:80px; color:var(--gold);"></i>
                 </div>
             </div>
         </div>
 
         <div id="page-logs" style="display:none;">
-            <h2 style="color:var(--gold); margin-bottom:20px;">Terminal Activity Log</h2>
+            <h2 style="color:var(--gold); margin-bottom:20px;">Live Activity Log</h2>
             <div id="logEntries" class="log-list">
-                <div style="padding:40px; text-align:center; color:var(--text-dim);">No activity recorded yet.</div>
+                <div style="padding:40px; text-align:center; color:var(--text-dim);">No terminal activity recorded.</div>
             </div>
         </div>
 
         <div id="page-profile" style="display:none;">
             <div style="text-align:center; padding:40px 20px; background:var(--liquid-glass); border-radius:40px; border:1px solid var(--gold);">
-                <div style="width:100px; height:100px; background:var(--gold); border-radius:30px; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; rotate:5deg; box-shadow:0 15px 30px var(--gold-glow);"><i class="fa-solid fa-user-secret" style="font-size:40px; color:#000;"></i></div>
+                <div style="width:100px; height:100px; background:var(--gold); border-radius:30px; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; rotate:5deg; box-shadow:0 15px 30px var(--gold-glow);"><i class="fa-solid fa-user-shield" style="font-size:40px; color:#000;"></i></div>
                 <h2 style="margin:0;">Asim Aljma'an</h2>
                 <p style="color:var(--gold); font-weight:800; letter-spacing:2px;">LINK EXPERT - SYSTEM ARCHITECT</p>
                 <div style="margin-top:30px; display:grid; gap:10px;">
@@ -166,10 +168,10 @@
 
     <div id="mainModal" class="modal">
         <div class="modal-content">
-            <h3 style="color:var(--gold); margin-top:0;">Asset Configuration</h3>
+            <h3 style="color:var(--gold); margin-top:0;">Terminal Config</h3>
             <input type="hidden" id="f-idx"><input type="hidden" id="f-old-plate">
             <input type="text" id="f-plate" class="m-input" placeholder="PLATE NUMBER">
-            <input type="text" id="f-emp" class="m-input" placeholder="FULL NAME">
+            <input type="text" id="f-emp" class="m-input" placeholder="AUTHORIZED PERSON">
             <input type="text" id="f-client" class="m-input" placeholder="COMPANY">
             <input type="text" id="f-model" class="m-input" placeholder="VEHICLE MODEL">
             <input type="text" id="f-color" class="m-input" placeholder="COLOR">
@@ -180,8 +182,8 @@
     </div>
 
     <nav>
-        <div class="nav-item active" onclick="switchTab('page-terminal', this)"><i class="fa-solid fa-tower-observation"></i>Terminal</div>
-        <div class="nav-item" onclick="switchTab('page-logs', this)"><i class="fa-solid fa-list-check"></i>Logs</div>
+        <div class="nav-item active" onclick="switchTab('page-terminal', this)"><i class="fa-solid fa-shield-halved"></i>Terminal</div>
+        <div class="nav-item" onclick="switchTab('page-logs', this)"><i class="fa-solid fa-clock-rotate-left"></i>History</div>
         <div class="nav-item" onclick="switchTab('page-profile', this)"><i class="fa-solid fa-crown"></i>Expert</div>
     </nav>
 
@@ -199,11 +201,6 @@
             } catch(e) { console.error("Cloud Connection Failure"); }
         }
 
-        function toggleTheme() {
-            const current = document.body.getAttribute('data-theme');
-            document.body.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
-        }
-
         function updateDashboard() {
             document.getElementById('stat-total').innerText = db.length;
             document.getElementById('stat-active').innerText = db.filter(i => String(i.status).toLowerCase().includes('active') && !String(i.status).toLowerCase().includes('inactive')).length;
@@ -217,7 +214,6 @@
 
             const filtered = db.filter(i => String(i.plate).toLowerCase().includes(q) || String(i.emp).toLowerCase().includes(q) || String(i.client).toLowerCase().includes(q));
             
-            // Log searching
             if(q.length > 2 && filtered.length > 0) {
                 const now = new Date();
                 const logMsg = { time: now.toLocaleTimeString(), plate: filtered[0].plate, status: filtered[0].status };
@@ -237,23 +233,21 @@
                 const realIdx = db.findIndex(x => x.plate === item.plate);
                 const card = document.createElement('div');
                 card.className = `card ${isBlocked ? 'alarm-active' : ''}`;
-                if(isBlocked && window.navigator.vibrate) window.navigator.vibrate([200, 100, 200]);
+                
+                if(isBlocked && window.navigator.vibrate) window.navigator.vibrate([300, 100, 300]);
 
                 card.innerHTML = `
                     <div class="card-header">
                         <div class="plate-ui">${item.plate}</div>
-                        <div class="zone-tag">B${Math.floor(Math.random()*3)+1}-VIP</div>
+                        <div class="zone-tag">ZONE B1</div>
                     </div>
-                    <div style="color:var(--gold); font-weight:700; font-size:12px;">${item.client || 'MAJDOUL GUEST'}</div>
                     <div class="details-box">
-                        <div><label>Authorized</label><span>${item.emp || '-'}</span></div>
-                        <div><label>Status</label><span style="color:${isBlocked ? 'var(--danger)' : 'var(--success)'}">${isBlocked ? 'ACCESS REVOKED' : 'CLEAR'}</span></div>
+                        <div><label>Owner</label><span>${item.emp || '-'}</span></div>
+                        <div><label>Security Status</label><span style="color:${isBlocked ? 'var(--danger)' : 'var(--success)'}">${isBlocked ? 'ACCESS DENIED' : 'VERIFIED'}</span></div>
                         <div><label>Model</label><span>${item.model || '-'}</span></div>
-                        <div><label>Color</label><span>${item.color || '-'}</span></div>
+                        <div><label>Company</label><span>${item.client || '-'}</span></div>
                     </div>
-                    <div style="margin-top:20px; display:flex; gap:10px;">
-                        <button onclick="openModal(false, ${realIdx})" style="flex:1; background:var(--gold-glow); border:1px solid var(--gold); color:var(--gold); padding:10px; border-radius:12px; font-weight:700; cursor:pointer;">MANAGE</button>
-                    </div>
+                    <button onclick="openModal(false, ${realIdx})" style="width:100%; background:none; border:1px solid var(--gold); color:var(--gold); padding:12px; border-radius:15px; margin-top:15px; font-weight:700; cursor:pointer;">MANAGE ASSET</button>
                 `;
                 container.appendChild(card);
             });
@@ -263,7 +257,7 @@
             const container = document.getElementById('logEntries');
             container.innerHTML = searchLogs.map(l => `
                 <div class="log-entry">
-                    <span><b>${l.plate}</b> checked</span>
+                    <span><b>${l.plate}</b> Scan</span>
                     <span style="color:${String(l.status).toLowerCase().includes('inactive') ? 'var(--danger)' : 'var(--success)'}">${l.status}</span>
                     <span style="color:var(--text-dim)">${l.time}</span>
                 </div>
@@ -299,7 +293,7 @@
         function closeModal() { document.getElementById('mainModal').style.display = 'none'; }
 
         async function saveData() {
-            const p = prompt("Sync Pass:"); if(p !== ADMIN_PASS) return;
+            const p = prompt("Final Auth:"); if(p !== ADMIN_PASS) return;
             const idx = document.getElementById('f-idx').value;
             const data = {
                 oldPlate: document.getElementById('f-old-plate').value,
@@ -312,7 +306,7 @@
             };
             fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
             if(idx === "-1") db.push(data); else db[idx] = data;
-            alert("Cloud Terminal Synchronized");
+            alert("Cloud Synced");
             closeModal();
             updateDashboard();
             watchdogSearch();
