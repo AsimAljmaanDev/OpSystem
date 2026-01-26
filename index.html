@@ -2,265 +2,269 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Majdoul Elite Terminal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Majdoul Parking - Link Expert</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --bg: #05070a;
-            --card-bg: rgba(17, 25, 40, 0.75);
-            --accent: #00d2ff; /* Ice Blue */
-            --accent-glow: rgba(0, 210, 255, 0.3);
-            --success: #34c759;
-            --danger: #ff3b30;
-            --text: #f5f5f7;
-            --text-dim: #86868b;
+            /* Dark Mode (Royal Navy & Black) */
+            --bg: #020408;
+            --glass: rgba(10, 25, 47, 0.7);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --accent: #007aff;
+            --text: #ffffff;
+            --text-dim: #a0a0ab;
+            --ios-green: #30d158;
+            --ios-red: #ff453a;
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg: #f2f2f7;
+                --glass: rgba(255, 255, 255, 0.8);
+                --card-border: rgba(0, 0, 0, 0.05);
+                --accent: #007aff;
+                --text: #000000;
+                --text-dim: #8e8e93;
+            }
         }
 
         body {
             margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro", sans-serif;
             background: var(--bg);
             color: var(--text);
-            background-image: radial-gradient(circle at 50% -20%, #1a2a44 0%, #05070a 100%);
-            min-height: 100vh;
+            transition: background 0.3s ease;
+            overflow-x: hidden;
         }
 
-        /* Modern Glass Header */
+        /* Liquid Glass Header */
         header {
-            padding: 50px 25px 20px;
-            background: rgba(5, 7, 10, 0.4);
-            backdrop-filter: blur(20px);
+            padding: 60px 25px 20px;
+            background: var(--glass);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
             position: sticky; top: 0; z-index: 1000;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 0.5px solid var(--card-border);
+            text-align: center;
         }
 
-        .header-wrap { max-width: 800px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
-        .logo-area h1 { margin: 0; font-size: 26px; font-weight: 800; background: linear-gradient(to right, #fff, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header-title { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+        .header-subtitle { font-size: 11px; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
 
-        .container { padding: 20px; max-width: 800px; margin: 0 auto; }
+        .container { padding: 20px; max-width: 600px; margin: 0 auto; padding-bottom: 120px; }
 
-        /* Neo-Search Bar */
-        .search-section { position: relative; margin-bottom: 25px; }
-        .search-box {
-            background: var(--card-bg);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 16px;
+        /* Liquid Search Bar */
+        .search-container {
+            background: var(--glass);
+            border-radius: 20px;
             padding: 15px 20px;
             display: flex; align-items: center;
-            transition: 0.3s;
+            border: 1px solid var(--card-border);
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
         }
-        .search-box:focus-within { border-color: var(--accent); box-shadow: 0 0 20px var(--accent-glow); }
-        .search-box input { background: none; border: none; color: white; width: 100%; font-size: 17px; outline: none; margin-left: 12px; }
-
-        /* Quick Filters */
-        .filters { display: flex; gap: 10px; margin-bottom: 30px; overflow-x: auto; padding-bottom: 5px; }
-        .filter-tag {
-            padding: 8px 18px; border-radius: 20px; background: rgba(255,255,255,0.05);
-            font-size: 13px; color: var(--text-dim); cursor: pointer; white-space: nowrap; border: 1px solid transparent;
+        .search-container input {
+            background: none; border: none; color: var(--text); width: 100%; font-size: 17px; outline: none; margin-left: 12px;
         }
-        .filter-tag.active { background: var(--accent-glow); color: var(--accent); border-color: var(--accent); }
 
-        /* Modern Car Card */
+        /* Results Card */
         .car-card {
-            background: var(--card-bg);
-            border-radius: 24px;
-            padding: 24px;
+            background: var(--glass);
+            border-radius: 30px;
+            padding: 25px;
             margin-bottom: 20px;
-            border: 1px solid rgba(255,255,255,0.05);
-            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
             position: relative;
             overflow: hidden;
-            transition: 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
-        .car-card:active { transform: scale(0.98); }
+        .status-strip { position: absolute; left: 0; top: 0; bottom: 0; width: 6px; }
 
-        .status-glow { position: absolute; top: 0; right: 0; width: 100px; height: 100px; filter: blur(50px); z-index: -1; opacity: 0.2; }
-        .active-glow { background: var(--success); }
-        .inactive-glow { background: var(--danger); }
-
-        .card-main { display: flex; justify-content: space-between; align-items: flex-start; }
-        .plate-ui { font-size: 28px; font-weight: 900; letter-spacing: 2px; color: #fff; }
-        .client-name { color: var(--accent); font-size: 14px; font-weight: 600; margin-top: 4px; }
-
-        .info-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 25px;
-            background: rgba(0,0,0,0.2); padding: 15px; border-radius: 16px;
+        .card-header { display: flex; justify-content: space-between; align-items: center; }
+        .plate-num { font-size: 28px; font-weight: 900; letter-spacing: 1px; }
+        
+        .card-details {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;
+            padding-top: 15px; border-top: 0.5px solid var(--card-border);
         }
-        .item label { display: block; font-size: 10px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 4px; }
-        .item span { font-size: 14px; font-weight: 500; }
+        .detail-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 4px; }
+        .detail-val { font-size: 15px; font-weight: 600; }
 
-        /* Floating Add Button */
-        .btn-add {
+        /* Profile Page Styles */
+        .profile-card {
+            text-align: center; background: var(--glass); border-radius: 35px; padding: 40px 20px;
+            border: 1px solid var(--card-border); margin-top: 20px;
+        }
+        .profile-img { width: 100px; height: 100px; border-radius: 50%; background: var(--accent); margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 40px; color: white; }
+        
+        .contact-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 30px; }
+        .contact-item { 
+            background: var(--bg); padding: 15px; border-radius: 20px; 
+            text-decoration: none; color: var(--text); border: 1px solid var(--card-border);
+            transition: 0.2s;
+        }
+        .contact-item:active { transform: scale(0.9); background: var(--accent); color: white; }
+        .contact-item i { font-size: 20px; display: block; margin-bottom: 8px; }
+        .contact-item span { font-size: 11px; font-weight: 600; }
+
+        /* FAB Button */
+        .fab {
             position: fixed; bottom: 100px; right: 25px;
-            width: 64px; height: 64px; border-radius: 22px;
-            background: linear-gradient(135deg, var(--accent), #0072ff);
+            width: 60px; height: 60px; border-radius: 20px;
+            background: var(--accent); color: white;
             display: flex; align-items: center; justify-content: center;
-            color: #fff; font-size: 28px; box-shadow: 0 10px 25px rgba(0, 210, 255, 0.3);
-            cursor: pointer; z-index: 1001;
+            font-size: 24px; box-shadow: 0 10px 25px rgba(0, 122, 255, 0.3); z-index: 999;
         }
 
-        /* Modal Customization */
+        /* Bottom Nav */
+        nav {
+            position: fixed; bottom: 0; width: 100%; height: 90px;
+            background: var(--glass); backdrop-filter: blur(20px);
+            border-top: 0.5px solid var(--card-border);
+            display: flex; justify-content: space-around; padding-top: 10px;
+        }
+        .nav-link { text-align: center; color: var(--text-dim); text-decoration: none; font-size: 11px; flex: 1; }
+        .nav-link.active { color: var(--accent); }
+        .nav-link i { font-size: 24px; margin-bottom: 4px; display: block; }
+
+        /* Modal */
         .modal {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.85);
-            display: none; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(15px);
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+            display: none; align-items: flex-end; z-index: 2000;
         }
         .modal-content {
-            background: #0f172a; width: 90%; max-width: 450px; border-radius: 30px;
-            padding: 30px; border: 1px solid rgba(255,255,255,0.1);
+            background: var(--bg); width: 100%; border-radius: 30px 30px 0 0;
+            padding: 30px 20px 50px; transform: translateY(100%); transition: 0.4s;
         }
-        .input-field {
-            width: 100%; padding: 16px; background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 14px;
-            color: white; margin-bottom: 15px; box-sizing: border-box; outline: none;
+        .input-group { background: var(--glass); border-radius: 20px; padding: 10px; margin-bottom: 20px; }
+        .input-group input, .input-group select {
+            width: 100%; padding: 15px; background: none; border: none; border-bottom: 0.5px solid var(--card-border); color: var(--text); outline: none; font-size: 16px;
         }
-        .input-field:focus { border-color: var(--accent); }
-
-        .save-btn {
-            width: 100%; padding: 18px; border-radius: 14px; border: none;
-            background: var(--accent); color: #000; font-weight: 700; font-size: 16px; cursor: pointer;
-        }
-
-        /* Bottom Tab Bar */
-        .tab-bar {
-            position: fixed; bottom: 0; left: 0; right: 0; height: 85px;
-            background: rgba(10, 15, 25, 0.8); backdrop-filter: blur(25px);
-            display: flex; justify-content: space-around; padding-top: 15px;
-            border-top: 1px solid rgba(255,255,255,0.05);
-        }
-        .tab { color: var(--text-dim); text-align: center; font-size: 11px; cursor: pointer; }
-        .tab.active { color: var(--accent); }
-        .tab i { font-size: 24px; margin-bottom: 5px; display: block; }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="header-wrap">
-            <div class="logo-area">
-                <h1>MAJDOUL ELITE</h1>
-            </div>
-            <i class="fa-solid fa-bolt" style="color:var(--accent)"></i>
-        </div>
+        <div class="header-subtitle">Majdoul Parking</div>
+        <div class="header-title">Link Expert</div>
     </header>
 
     <div class="container">
-        <div class="search-section">
-            <div class="search-box">
+        <div id="page-search" class="page">
+            <div class="search-container">
                 <i class="fa-solid fa-magnifying-glass" style="color:var(--accent)"></i>
-                <input type="text" id="masterSearch" placeholder="Search by plate, owner or client..." oninput="smartSearch()">
+                <input type="text" id="masterSearch" placeholder="Search plates or names..." oninput="smartSearch()">
+            </div>
+            <div id="results">
+                <div style="text-align:center; padding-top:50px; opacity:0.4;">
+                    <i class="fa-solid fa-hourglass-start" style="font-size:40px;"></i>
+                    <p>Enter data to begin search</p>
+                </div>
             </div>
         </div>
 
-        <div class="filters">
-            <div class="filter-tag active" onclick="setFilter('all', this)">All Access</div>
-            <div class="filter-tag" onclick="setFilter('active', this)">Active Only</div>
-            <div class="filter-tag" onclick="setFilter('inactive', this)">Revoked</div>
-        </div>
-
-        <div id="cardsContainer">
-            <div style="text-align:center; padding:50px; color:var(--text-dim);">
-                <i class="fa-solid fa-cube" style="font-size:40px; margin-bottom:15px; opacity:0.2;"></i>
-                <p>Enter search criteria to pull from cloud</p>
+        <div id="page-profile" class="page" style="display:none;">
+            <div class="profile-card">
+                <div class="profile-img"><i class="fa-solid fa-user-tie"></i></div>
+                <h2 style="margin:0;">Asim Aljma'an</h2>
+                <p style="color:var(--text-dim); margin-top:5px;">System Administrator</p>
+                <div style="background:var(--accent); display:inline-block; padding:5px 15px; border-radius:10px; font-size:12px; font-weight:700;">Link Expert - Majdoul</div>
+                
+                <div class="contact-grid">
+                    <a href="https://wa.me/966500823643" class="contact-item">
+                        <i class="fa-brands fa-whatsapp"></i><span>WhatsApp</span>
+                    </a>
+                    <a href="mailto:asimaljmaan@hotmail.com" class="contact-item">
+                        <i class="fa-solid fa-envelope"></i><span>Email</span>
+                    </a>
+                    <a href="tel:+966500823643" class="contact-item">
+                        <i class="fa-solid fa-phone"></i><span>Call</span>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="btn-add" onclick="openModal(true)">
-        <i class="fa-solid fa-plus"></i>
-    </div>
+    <div class="fab" onclick="openModal(true)"><i class="fa-solid fa-plus"></i></div>
 
-    <div id="mainModal" class="modal">
-        <div class="modal-content">
-            <h2 id="modalTitle" style="margin-top:0; color:var(--accent)">Vehicle Profile</h2>
-            <input type="hidden" id="f-idx">
-            <input type="hidden" id="f-old-plate">
-            <input type="text" id="f-plate" class="input-field" placeholder="Plate Number">
-            <input type="text" id="f-emp" class="input-field" placeholder="Owner Name">
-            <input type="text" id="f-client" class="input-field" placeholder="Client/Company">
-            <input type="text" id="f-model" class="input-field" placeholder="Vehicle Model">
-            <input type="text" id="f-color" class="input-field" placeholder="Color">
-            <select id="f-status" class="input-field">
-                <option value="Active">Access: Active</option>
-                <option value="Inactive">Access: Inactive</option>
-            </select>
-            <button class="save-btn" onclick="saveData()">Update Terminal</button>
-            <button style="background:none; border:none; color:var(--text-dim); width:100%; margin-top:15px; cursor:pointer;" onclick="closeModal()">Cancel</button>
+    <div id="mainModal" class="modal" onclick="closeModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+                <h3 style="margin:0;">Vehicle Profile</h3>
+                <span onclick="saveData()" style="color:var(--accent); font-weight:800; cursor:pointer;">SAVE</span>
+            </div>
+            <div class="input-group">
+                <input type="hidden" id="f-idx">
+                <input type="hidden" id="f-old-plate">
+                <input type="text" id="f-plate" placeholder="Plate Number">
+                <input type="text" id="f-emp" placeholder="Owner Name">
+                <input type="text" id="f-client" placeholder="Company">
+                <input type="text" id="f-model" placeholder="Model">
+                <input type="text" id="f-color" placeholder="Color">
+                <select id="f-status">
+                    <option value="Active">Access: Active</option>
+                    <option value="Inactive">Access: Inactive</option>
+                </select>
+            </div>
         </div>
     </div>
 
-    <nav class="tab-bar">
-        <div class="tab active"><i class="fa-solid fa-qrcode"></i>Scanner</div>
-        <div class="tab" onclick="alert('Technical Support: Asim Aljma\'an\n+966500823643')"><i class="fa-solid fa-shield-halved"></i>Support</div>
+    <nav>
+        <div class="nav-link active" onclick="switchTab('page-search', this)">
+            <i class="fa-solid fa-magnifying-glass-chart"></i><span>Terminal</span>
+        </div>
+        <div class="nav-link" onclick="switchTab('page-profile', this)">
+            <i class="fa-solid fa-user-gear"></i><span>My Profile</span>
+        </div>
     </nav>
 
     <script>
         const scriptURL = "https://script.google.com/macros/s/AKfycbzPo0RiY_A8MtF_zhnbmy9_gjcjRU7gtb3z6eoCO0ydZ4GndiqVYlq3vWj8SaZRsRx-/exec";
         const ADMIN_PASS = "0809";
         let db = [];
-        let currentFilter = 'all';
 
         async function loadData() {
             try {
                 const res = await fetch(scriptURL);
                 db = await res.json();
-                console.log("Terminal Online");
-            } catch(e) { console.error("Link Broken"); }
-        }
-
-        function setFilter(type, el) {
-            document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
-            el.classList.add('active');
-            currentFilter = type;
-            smartSearch();
+            } catch(e) { console.error("Cloud Error"); }
         }
 
         function smartSearch() {
-            const q = document.getElementById('masterSearch').value.toLowerCase();
-            const container = document.getElementById('cardsContainer');
-            
-            if(!q) {
-                container.innerHTML = '<div style="text-align:center; padding:50px; color:var(--text-dim);"><p>Waiting for search...</p></div>';
-                return;
-            }
+            const q = document.getElementById('masterSearch').value.trim().toLowerCase();
+            const container = document.getElementById('results');
+            if(!q) { container.innerHTML = '<p style="text-align:center; opacity:0.4; margin-top:50px;">Waiting for search...</p>'; return; }
 
-            let filtered = db.filter(i => 
+            const filtered = db.filter(i => 
                 String(i.plate).toLowerCase().includes(q) || 
                 String(i.emp).toLowerCase().includes(q) || 
                 String(i.client).toLowerCase().includes(q)
             );
-
-            if(currentFilter === 'active') filtered = filtered.filter(i => String(i.status).toLowerCase().includes('active') && !String(i.status).toLowerCase().includes('inactive'));
-            if(currentFilter === 'inactive') filtered = filtered.filter(i => String(i.status).toLowerCase().includes('inactive'));
-
             render(filtered);
         }
 
         function render(data) {
-            const container = document.getElementById('cardsContainer');
+            const container = document.getElementById('results');
             container.innerHTML = '';
-            
             data.forEach(item => {
-                const isActive = String(item.status || 'Active').toLowerCase().includes('active') && !String(item.status || 'Active').toLowerCase().includes('inactive');
+                const isActive = String(item.status || '').toLowerCase().includes('active') && !String(item.status || '').toLowerCase().includes('inactive');
                 const realIdx = db.findIndex(x => x.plate === item.plate);
                 
                 const card = document.createElement('div');
                 card.className = 'car-card';
                 card.innerHTML = `
-                    <div class="status-glow ${isActive ? 'active-glow' : 'inactive-glow'}"></div>
-                    <div class="card-main">
-                        <div>
-                            <div class="plate-ui">${item.plate}</div>
-                            <div class="client-name">${item.client || 'Corporate Client'}</div>
-                        </div>
-                        <div style="text-align:right">
-                            <div style="background:${isActive ? 'var(--success)' : 'var(--danger)'}; padding:4px 12px; border-radius:10px; font-size:10px; font-weight:900; color:#000">${isActive ? 'ACTIVE' : 'REVOKED'}</div>
-                            <i class="fa-solid fa-sliders" style="margin-top:15px; color:var(--accent); cursor:pointer;" onclick="openModal(false, ${realIdx})"></i>
-                        </div>
+                    <div class="status-strip" style="background:${isActive ? 'var(--ios-green)' : 'var(--ios-red)'}"></div>
+                    <div class="card-header">
+                        <div class="plate-num">${item.plate}</div>
+                        <i class="fa-solid fa-pen-to-square" style="color:var(--accent); cursor:pointer;" onclick="openModal(false, ${realIdx})"></i>
                     </div>
-                    <div class="info-grid">
-                        <div class="item"><label>Authorized Owner</label><span>${item.emp || '-'}</span></div>
-                        <div class="item"><label>Car Specs</label><span>${item.model || '-'} (${item.color || '-'})</span></div>
+                    <div style="font-size:13px; color:var(--accent); font-weight:600; margin-top:5px;">${item.client || 'Corporate'}</div>
+                    <div class="card-details">
+                        <div class="item"><div class="detail-label">Authorized</div><div class="detail-val">${item.emp || '-'}</div></div>
+                        <div class="item"><div class="detail-label">Status</div><div class="detail-val" style="color:${isActive ? 'var(--ios-green)' : 'var(--ios-red)'}">${isActive ? 'ACTIVE' : 'INACTIVE'}</div></div>
+                        <div class="item"><div class="detail-label">Model</div><div class="detail-val">${item.model || '-'}</div></div>
+                        <div class="item"><div class="detail-label">Color</div><div class="detail-val">${item.color || '-'}</div></div>
                     </div>
                 `;
                 container.appendChild(card);
@@ -271,13 +275,11 @@
             if(isNew) {
                 const p = prompt("Admin Pass:");
                 if(p !== ADMIN_PASS) return;
-                document.getElementById('modalTitle').innerText = "Register New Asset";
                 document.getElementById('f-idx').value = "-1";
                 document.getElementById('f-old-plate').value = "NEW";
                 ['f-plate', 'f-emp', 'f-client', 'f-model', 'f-color'].forEach(f => document.getElementById(f).value = "");
             } else {
                 const item = db[idx];
-                document.getElementById('modalTitle').innerText = "Edit Asset Data";
                 document.getElementById('f-idx').value = idx;
                 document.getElementById('f-old-plate').value = item.plate;
                 document.getElementById('f-plate').value = item.plate;
@@ -288,14 +290,17 @@
                 document.getElementById('f-status').value = String(item.status).includes('Inactive') ? 'Inactive' : 'Active';
             }
             document.getElementById('mainModal').style.display = 'flex';
+            setTimeout(() => document.querySelector('.modal-content').style.transform = 'translateY(0)', 10);
         }
 
-        function closeModal() { document.getElementById('mainModal').style.display = 'none'; }
+        function closeModal() {
+            document.querySelector('.modal-content').style.transform = 'translateY(100%)';
+            setTimeout(() => document.getElementById('mainModal').style.display = 'none', 400);
+        }
 
         async function saveData() {
-            const p = prompt("Confirm Admin Pass to Sync Cloud:");
+            const p = prompt("Password to Sync:");
             if(p !== ADMIN_PASS) return;
-
             const idx = document.getElementById('f-idx').value;
             const data = {
                 oldPlate: document.getElementById('f-old-plate').value,
@@ -306,13 +311,18 @@
                 color: document.getElementById('f-color').value,
                 status: document.getElementById('f-status').value
             };
-
             fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
             if(idx === "-1") db.push(data); else db[idx] = data;
-            
-            alert("Terminal Cloud Synced Successfully");
+            alert("Cloud Updated");
             closeModal();
             smartSearch();
+        }
+
+        function switchTab(pageId, el) {
+            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+            document.getElementById(pageId).style.display = 'block';
+            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+            el.classList.add('active');
         }
 
         loadData();
