@@ -9,39 +9,27 @@
         :root {
             --bg: #030303;
             --majdoul-blue: #1a2a44;
-            --liquid-glass: rgba(15, 15, 15, 0.85);
+            --liquid-glass: rgba(15, 15, 15, 0.9);
             --gold: #b89b5e;
             --text: #ffffff;
             --text-dim: #707070;
             --danger: #ff3b30;
             --success: #34c759;
-            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        body {
-            margin: 0; font-family: -apple-system, system-ui, sans-serif;
-            background: var(--bg); color: var(--text); min-height: 100vh;
-        }
+        body { margin: 0; font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-        /* Glass Header */
         header {
             padding: 50px 25px 15px; background: var(--liquid-glass); backdrop-filter: blur(30px);
             position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(26, 42, 68, 0.5);
             display: flex; justify-content: space-between; align-items: center;
         }
-        .logo-box { display: flex; align-items: center; gap: 12px; }
-        .crown-icon { font-size: 22px; color: var(--majdoul-blue); }
-        .logo-text h1 { margin: 0; font-size: 18px; font-weight: 800; }
-        .logo-text span { font-size: 8px; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; display: block; }
 
-        .container { padding: 20px; max-width: 550px; margin: 0 auto; padding-bottom: 120px; }
+        .container { padding: 20px; max-width: 500px; margin: 0 auto; padding-bottom: 120px; }
 
         /* Dashboard Stats */
         .dash-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 25px; }
-        .stat-box { 
-            background: rgba(255,255,255,0.03); padding: 15px; border-radius: 18px; 
-            border: 1px solid rgba(255,255,255,0.05); text-align: center; 
-        }
+        .stat-box { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.05); text-align: center; }
         .stat-box b { display: block; font-size: 20px; color: var(--text); }
         .stat-box span { font-size: 8px; color: var(--text-dim); text-transform: uppercase; font-weight: 700; }
 
@@ -54,25 +42,27 @@
 
         /* Asset Card */
         .asset-card {
-            background: rgba(255,255,255,0.02); border-radius: 24px; padding: 20px;
+            background: rgba(255,255,255,0.02); border-radius: 24px; padding: 25px;
             border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px;
             position: relative; border-left: 4px solid var(--majdoul-blue);
+            backdrop-filter: blur(10px);
         }
         .asset-card.revoked { border-left-color: var(--danger); }
 
-        .plate-main { font-size: 28px; font-weight: 900; letter-spacing: 1px; margin-bottom: 10px; }
-        .grid-info { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0; }
+        .plate-main { font-size: 32px; font-weight: 900; letter-spacing: 1px; margin-bottom: 10px; color: #fff; }
+        
+        .grid-info { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; }
         .grid-item label { display: block; font-size: 8px; color: var(--text-dim); text-transform: uppercase; }
-        .grid-item span { font-size: 13px; font-weight: 500; }
+        .grid-item span { font-size: 14px; font-weight: 500; }
 
+        /* Employee Section - The Focus */
         .emp-tag { 
-            background: rgba(26, 42, 68, 0.3); padding: 10px 15px; border-radius: 12px; 
-            margin-top: 10px; border: 1px solid var(--majdoul-blue); 
+            background: rgba(26, 42, 68, 0.2); padding: 15px; border-radius: 16px; 
+            margin-top: 10px; border: 1px solid rgba(26, 42, 68, 0.4); 
         }
-        .emp-tag label { font-size: 8px; color: var(--majdoul-blue); font-weight: 800; display: block; }
-        .emp-tag b { font-size: 14px; }
+        .emp-tag label { font-size: 8px; color: var(--majdoul-blue); font-weight: 800; display: block; text-transform: uppercase; margin-bottom: 4px; }
+        .emp-tag b { font-size: 16px; color: var(--text); }
 
-        /* UI Elements */
         .fab {
             position: fixed; bottom: 100px; right: 25px; width: 60px; height: 60px; border-radius: 20px;
             background: var(--majdoul-blue); color: white; display: flex; align-items: center; justify-content: center;
@@ -80,14 +70,14 @@
         }
 
         .edit-btn {
-            width: 100%; margin-top: 15px; padding: 10px; border-radius: 10px; 
+            width: 100%; margin-top: 15px; padding: 12px; border-radius: 12px; 
             border: 1px solid var(--gold); background: none; color: var(--gold); font-weight: 700; cursor: pointer;
         }
 
         /* Modal */
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
         .modal-box { background: #111; border-radius: 25px; width: 100%; max-width: 400px; padding: 25px; border: 1px solid var(--majdoul-blue); }
-        .m-input { width: 100%; padding: 12px; background: #000; border: 1px solid #333; border-radius: 10px; color: #fff; margin-bottom: 10px; box-sizing: border-box; }
+        .m-input { width: 100%; padding: 14px; background: #000; border: 1px solid #333; border-radius: 12px; color: #fff; margin-bottom: 12px; box-sizing: border-box; }
         
         nav {
             position: fixed; bottom: 0; width: 100%; height: 85px; background: var(--liquid-glass);
@@ -96,29 +86,31 @@
         }
         .nav-link { color: var(--text-dim); text-align: center; font-size: 10px; text-decoration: none; flex: 1; }
         .nav-link.active { color: var(--majdoul-blue); }
-        .nav-link i { font-size: 20px; display: block; margin-bottom: 4px; }
     </style>
 </head>
 <body>
 
     <header>
         <div class="logo-box">
-            <i class="fa-solid fa-crown crown-icon"></i>
-            <div class="logo-text"><h1>Majdoul Terminal</h1><span>Link Expert</span></div>
+            <i class="fa-solid fa-crown" style="color:var(--majdoul-blue)"></i>
+            <div class="logo-text">
+                <h1 style="margin:0; font-size:18px;">Majdoul Terminal</h1>
+                <span style="font-size:8px; color:var(--gold); text-transform:uppercase; font-weight:700; display:block;">Link Expert Command</span>
+            </div>
         </div>
-        <div onclick="location.reload()" style="color:var(--text-dim)"><i class="fa-solid fa-rotate"></i></div>
+        <div onclick="location.reload()" style="color:var(--text-dim); cursor:pointer;"><i class="fa-solid fa-rotate"></i></div>
     </header>
 
     <div class="container">
         <div class="dash-row">
-            <div class="stat-box"><b id="s-total">0</b><span>Total</span></div>
-            <div class="stat-box"><b id="s-clear" style="color:var(--success)">0</b><span>Clear</span></div>
+            <div class="stat-box"><b id="s-total">0</b><span>System Total</span></div>
+            <div class="stat-box"><b id="s-clear" style="color:var(--success)">0</b><span>Authorized</span></div>
             <div class="stat-box"><b id="s-block" style="color:var(--danger)">0</b><span>Blocked</span></div>
         </div>
 
         <div class="search-wrap">
             <i class="fa-solid fa-magnifying-glass" style="color:var(--majdoul-blue)"></i>
-            <input type="text" id="mainSearch" placeholder="Search Terminal..." oninput="runSearch()">
+            <input type="text" id="mainSearch" placeholder="Search Plate or Employee..." oninput="runSearch()">
         </div>
 
         <div id="results"></div>
@@ -128,22 +120,22 @@
 
     <div id="mainModal" class="modal">
         <div class="modal-box">
-            <h3 style="color:var(--majdoul-blue); margin-top:0;">Asset Manager</h3>
+            <h3 style="color:var(--majdoul-blue); margin-top:0;">Asset Setup</h3>
             <input type="hidden" id="f-idx"><input type="hidden" id="f-old-plate">
             <input type="text" id="f-client" class="m-input" placeholder="Client Name">
             <input type="text" id="f-plate" class="m-input" placeholder="Plate Number">
             <input type="text" id="f-model" class="m-input" placeholder="Vehicle Model">
             <input type="text" id="f-color" class="m-input" placeholder="Color">
             <input type="text" id="f-emp" class="m-input" placeholder="EmployeeName">
-            <select id="f-status" class="m-input"><option value="Active">Authorized</option><option value="Inactive">Revoked</option></select>
-            <button onclick="saveToCloud()" style="width:100%; padding:15px; border-radius:10px; background:var(--majdoul-blue); color:white; border:none; font-weight:800;">SYNC DATA</button>
+            <select id="f-status" class="m-input"><option value="Active">Grant Access</option><option value="Inactive">Revoke Access</option></select>
+            <button onclick="saveToCloud()" style="width:100%; padding:16px; border-radius:12px; background:var(--majdoul-blue); color:white; border:none; font-weight:800; cursor:pointer;">SYNC TO CLOUD</button>
             <p onclick="closeModal()" style="text-align:center; color:var(--text-dim); cursor:pointer; margin-top:15px; font-size:12px;">Discard Changes</p>
         </div>
     </div>
 
     <nav>
-        <a href="#" class="nav-link active"><i class="fa-solid fa-shield-halved"></i>Terminal</a>
-        <a href="tel:+966500823643" class="nav-link"><i class="fa-solid fa-headset"></i>Support</a>
+        <a href="#" class="nav-link active"><i class="fa-solid fa-shield-halved" style="font-size:20px; display:block;"></i>Terminal</a>
+        <a href="tel:+966500823643" class="nav-link"><i class="fa-solid fa-phone" style="font-size:20px; display:block;"></i>Support</a>
     </nav>
 
     <script>
@@ -152,9 +144,12 @@
         let db = [];
 
         async function sync() {
-            const res = await fetch(API);
-            db = await res.json();
-            updateStats();
+            try {
+                const res = await fetch(API);
+                db = await res.json();
+                console.log("Cloud Data Sample:", db[0]); // Check browser console for this!
+                updateStats();
+            } catch(e) { console.error("Cloud Error"); }
         }
 
         function updateStats() {
@@ -165,31 +160,43 @@
 
         function runSearch() {
             const q = document.getElementById('mainSearch').value.toLowerCase();
-            const res = document.getElementById('results');
-            if(!q) { res.innerHTML = ''; return; }
-            const filtered = db.filter(i => String(i.plate).toLowerCase().includes(q) || String(i.EmployeeName).toLowerCase().includes(q));
+            const resArea = document.getElementById('results');
+            if(!q) { resArea.innerHTML = ''; return; }
+            
+            // Search across Plate and EmployeeName
+            const filtered = db.filter(i => 
+                String(i.plate || '').toLowerCase().includes(q) || 
+                String(i.EmployeeName || '').toLowerCase().includes(q)
+            );
             render(filtered);
         }
 
         function render(data) {
-            const res = document.getElementById('results');
-            res.innerHTML = '';
+            const resArea = document.getElementById('results');
+            resArea.innerHTML = '';
             data.forEach(item => {
                 const idx = db.findIndex(x => x.plate === item.plate);
-                const isB = String(item.status).includes('Inactive');
+                const isB = String(item.status || '').includes('Inactive');
+                
+                // DATA MAPPING
+                const empName = item.EmployeeName || "Name Not Found";
+
                 const card = document.createElement('div');
                 card.className = `asset-card ${isB ? 'revoked' : ''}`;
                 card.innerHTML = `
-                    <div style="font-size:10px; color:var(--gold); font-weight:800;">${item.client || 'CLIENT'}</div>
+                    <div style="font-size:10px; color:var(--gold); font-weight:800; text-transform:uppercase;">${item.client || 'General Client'}</div>
                     <div class="plate-main">${item.plate}</div>
                     <div class="grid-info">
-                        <div class="grid-item"><label>Model</label><span>${item.model}</span></div>
-                        <div class="grid-item"><label>Color</label><span>${item.color}</span></div>
+                        <div class="grid-item"><label>Model</label><span>${item.model || '-'}</span></div>
+                        <div class="grid-item"><label>Color</label><span>${item.color || '-'}</span></div>
                     </div>
-                    <div class="emp-tag"><label>Staff Member</label><b>${item.EmployeeName || 'Unknown'}</b></div>
+                    <div class="emp-tag">
+                        <label>Employee Name</label>
+                        <b>${empName}</b>
+                    </div>
                     <button class="edit-btn" onclick="openModal(false, ${idx})">EDIT ASSET</button>
                 `;
-                res.appendChild(card);
+                resArea.appendChild(card);
             });
         }
 
@@ -206,7 +213,7 @@
                 document.getElementById('f-plate').value = i.plate;
                 document.getElementById('f-model').value = i.model;
                 document.getElementById('f-color').value = i.color;
-                document.getElementById('f-emp').value = i.EmployeeName;
+                document.getElementById('f-emp').value = i.EmployeeName || "";
                 document.getElementById('f-status').value = String(i.status).includes('Inactive') ? 'Inactive' : 'Active';
             }
             document.getElementById('mainModal').style.display = 'flex';
@@ -224,10 +231,16 @@
                 EmployeeName: document.getElementById('f-emp').value,
                 status: document.getElementById('f-status').value
             };
+            
+            // Optimistic update for speed
+            const idx = document.getElementById('f-idx').value;
+            if(idx === "-1") db.push(data); else db[idx] = data;
+            
             fetch(API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
-            alert("Sent to Cloud");
+            alert("Terminal Synced");
             closeModal();
-            sync();
+            updateStats();
+            runSearch();
         }
 
         sync();
