@@ -3,234 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Link Expert Terminal</title>
+    <title>Link Expert - Majdoul Terminal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --bg: #030303;
-            --majdoul-blue: #1a2a44;
-            --liquid-glass: rgba(15, 15, 15, 0.85);
-            --gold: #b89b5e;
+            --bg: #000000;
+            --surface: #0a0a0a;
+            --glass: rgba(15, 15, 15, 0.85);
+            --gold: #d4af37;
+            --gold-light: #f1d592;
+            --gold-glow: rgba(212, 175, 55, 0.2);
             --text: #ffffff;
-            --text-dim: #707070;
+            --text-dim: #888888;
             --danger: #ff3b30;
             --success: #34c759;
+            --card-border: rgba(212, 175, 55, 0.3);
             --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        body {
-            margin: 0; font-family: -apple-system, system-ui, sans-serif;
-            background: var(--bg); color: var(--text); min-height: 100vh;
+        [data-theme="light"] {
+            --bg: #f2f2f7; --surface: #ffffff; --glass: rgba(255, 255, 255, 0.9);
+            --gold: #996515; --gold-light: #b8860b; --text: #1c1c1e; --text-dim: #636366;
+            --card-border: rgba(153, 101, 21, 0.2);
         }
 
-        /* Glass Header */
+        body { margin: 0; font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text); transition: var(--transition); min-height: 100vh; }
+
         header {
-            padding: 50px 25px 15px; background: var(--liquid-glass); backdrop-filter: blur(30px);
-            position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(26, 42, 68, 0.5);
+            padding: 50px 25px 20px; background: var(--glass); backdrop-filter: blur(25px);
+            position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--gold-glow);
             display: flex; justify-content: space-between; align-items: center;
         }
+
         .logo-box { display: flex; align-items: center; gap: 12px; }
-        .crown-icon { font-size: 22px; color: var(--majdoul-blue); }
-        .logo-text h1 { margin: 0; font-size: 18px; font-weight: 800; }
-        .logo-text span { font-size: 8px; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; display: block; }
+        .crown-svg { width: 35px; height: 35px; fill: var(--gold); }
+        .logo-text h1 { margin: 0; font-size: 18px; font-weight: 900; color: var(--gold-light); }
+        .logo-text span { font-size: 8px; letter-spacing: 3px; color: var(--gold); text-transform: uppercase; display: block; }
 
-        .container { padding: 20px; max-width: 550px; margin: 0 auto; padding-bottom: 120px; }
-
-        /* Dashboard Stats */
-        .dash-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 25px; }
-        .stat-box { 
-            background: rgba(255,255,255,0.03); padding: 15px; border-radius: 18px; 
-            border: 1px solid rgba(255,255,255,0.05); text-align: center; 
+        .theme-toggle {
+            width: 40px; height: 40px; border-radius: 12px; background: var(--gold-glow);
+            border: 1px solid var(--gold); color: var(--gold); display: flex; align-items: center; justify-content: center; cursor: pointer;
         }
-        .stat-box b { display: block; font-size: 20px; color: var(--text); }
-        .stat-box span { font-size: 8px; color: var(--text-dim); text-transform: uppercase; font-weight: 700; }
 
-        /* Search */
+        .container { padding: 20px; max-width: 600px; margin: 0 auto; padding-bottom: 120px; }
+
         .search-wrap {
-            background: var(--liquid-glass); border-radius: 15px; padding: 12px 18px;
-            display: flex; align-items: center; border: 1px solid var(--majdoul-blue); margin-bottom: 25px;
+            background: var(--glass); border-radius: 18px; padding: 12px 18px;
+            display: flex; align-items: center; border: 1px solid var(--gold-glow); margin-bottom: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         }
         .search-wrap input { background: none; border: none; color: var(--text); width: 100%; font-size: 16px; outline: none; margin-left: 10px; }
 
-        /* Asset Card */
         .asset-card {
-            background: rgba(255,255,255,0.02); border-radius: 24px; padding: 20px;
-            border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px;
-            position: relative; border-left: 4px solid var(--majdoul-blue);
+            background: var(--glass); border-radius: 25px; padding: 22px;
+            border: 1px solid var(--card-border); margin-bottom: 20px;
+            position: relative; transition: var(--transition);
         }
-        .asset-card.revoked { border-left-color: var(--danger); }
+        .asset-card.revoked { border-color: var(--danger); background: rgba(255, 59, 48, 0.05); }
 
-        .plate-main { font-size: 28px; font-weight: 900; letter-spacing: 1px; margin-bottom: 10px; }
-        .grid-info { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0; }
-        .grid-item label { display: block; font-size: 8px; color: var(--text-dim); text-transform: uppercase; }
-        .grid-item span { font-size: 13px; font-weight: 500; }
-
-        .emp-tag { 
-            background: rgba(26, 42, 68, 0.3); padding: 10px 15px; border-radius: 12px; 
-            margin-top: 10px; border: 1px solid var(--majdoul-blue); 
-        }
-        .emp-tag label { font-size: 8px; color: var(--majdoul-blue); font-weight: 800; display: block; }
-        .emp-tag b { font-size: 14px; }
-
-        /* UI Elements */
-        .fab {
-            position: fixed; bottom: 100px; right: 25px; width: 60px; height: 60px; border-radius: 20px;
-            background: var(--majdoul-blue); color: white; display: flex; align-items: center; justify-content: center;
-            font-size: 24px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); z-index: 1001; cursor: pointer;
-        }
-
-        .edit-btn {
-            width: 100%; margin-top: 15px; padding: 10px; border-radius: 10px; 
-            border: 1px solid var(--gold); background: none; color: var(--gold); font-weight: 700; cursor: pointer;
-        }
-
-        /* Modal */
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
-        .modal-box { background: #111; border-radius: 25px; width: 100%; max-width: 400px; padding: 25px; border: 1px solid var(--majdoul-blue); }
-        .m-input { width: 100%; padding: 12px; background: #000; border: 1px solid #333; border-radius: 10px; color: #fff; margin-bottom: 10px; box-sizing: border-box; }
+        .card-label { color: var(--gold); font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 4px; opacity: 0.8; }
+        .client-val { font-size: 15px; font-weight: 700; margin-bottom: 15px; border-left: 3px solid var(--gold); padding-left: 10px; }
         
+        .plate-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .plate-num { font-size: 32px; font-weight: 900; letter-spacing: 2px; }
+
+        .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; border-top: 1px solid var(--gold-glow); padding-top: 15px; }
+        .data-item label { display: block; font-size: 9px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 4px; }
+        .data-item span { font-size: 14px; font-weight: 600; }
+
+        /* The Employee Box */
+        .employee-footer { 
+            margin-top: 20px; padding: 15px; 
+            background: linear-gradient(to right, var(--gold-glow), transparent); 
+            border-radius: 15px; border-left: 4px solid var(--gold); 
+        }
+        .employee-footer label { font-size: 9px; color: var(--gold); text-transform: uppercase; display: block; margin-bottom: 4px; font-weight: 800; }
+        .employee-footer b { font-size: 16px; color: var(--text); }
+
         nav {
-            position: fixed; bottom: 0; width: 100%; height: 85px; background: var(--liquid-glass);
-            backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.05);
+            position: fixed; bottom: 0; width: 100%; height: 85px; background: var(--glass);
+            backdrop-filter: blur(25px); border-top: 1px solid var(--gold-glow);
             display: flex; justify-content: space-around; padding-top: 10px;
         }
-        .nav-link { color: var(--text-dim); text-align: center; font-size: 10px; text-decoration: none; flex: 1; }
-        .nav-link.active { color: var(--majdoul-blue); }
-        .nav-link i { font-size: 20px; display: block; margin-bottom: 4px; }
+        .nav-item { color: var(--text-dim); text-align: center; font-size: 10px; flex: 1; }
+        .nav-item.active { color: var(--gold); }
+        .nav-item i { font-size: 22px; display: block; }
     </style>
 </head>
-<body>
+<body data-theme="dark">
 
     <header>
         <div class="logo-box">
-            <i class="fa-solid fa-crown crown-icon"></i>
+            <svg class="crown-svg" viewBox="0 0 24 24"><path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5M19 19C19 19.6 18.6 20 18 20H6C5.4 20 5 19.6 5 19V18H19V19Z" /></svg>
             <div class="logo-text"><h1>Majdoul Terminal</h1><span>Link Expert</span></div>
         </div>
-        <div onclick="location.reload()" style="color:var(--text-dim)"><i class="fa-solid fa-rotate"></i></div>
+        <div class="theme-toggle" onclick="toggleTheme()"><i class="fa-solid fa-circle-half-stroke"></i></div>
     </header>
 
     <div class="container">
-        <div class="dash-row">
-            <div class="stat-box"><b id="s-total">0</b><span>Total</span></div>
-            <div class="stat-box"><b id="s-clear" style="color:var(--success)">0</b><span>Clear</span></div>
-            <div class="stat-box"><b id="s-block" style="color:var(--danger)">0</b><span>Blocked</span></div>
-        </div>
-
         <div class="search-wrap">
-            <i class="fa-solid fa-magnifying-glass" style="color:var(--majdoul-blue)"></i>
-            <input type="text" id="mainSearch" placeholder="Search Terminal..." oninput="runSearch()">
+            <i class="fa-solid fa-magnifying-glass" style="color:var(--gold)"></i>
+            <input type="text" id="masterSearch" placeholder="Scan Plate or Type Name..." oninput="performSearch()">
         </div>
-
-        <div id="results"></div>
-    </div>
-
-    <div class="fab" onclick="openModal(true)"><i class="fa-solid fa-plus"></i></div>
-
-    <div id="mainModal" class="modal">
-        <div class="modal-box">
-            <h3 style="color:var(--majdoul-blue); margin-top:0;">Asset Manager</h3>
-            <input type="hidden" id="f-idx"><input type="hidden" id="f-old-plate">
-            <input type="text" id="f-client" class="m-input" placeholder="Client Name">
-            <input type="text" id="f-plate" class="m-input" placeholder="Plate Number">
-            <input type="text" id="f-model" class="m-input" placeholder="Vehicle Model">
-            <input type="text" id="f-color" class="m-input" placeholder="Color">
-            <input type="text" id="f-emp" class="m-input" placeholder="EmployeeName">
-            <select id="f-status" class="m-input"><option value="Active">Authorized</option><option value="Inactive">Revoked</option></select>
-            <button onclick="saveToCloud()" style="width:100%; padding:15px; border-radius:10px; background:var(--majdoul-blue); color:white; border:none; font-weight:800;">SYNC DATA</button>
-            <p onclick="closeModal()" style="text-align:center; color:var(--text-dim); cursor:pointer; margin-top:15px; font-size:12px;">Discard Changes</p>
-        </div>
+        <div id="resultsArea"></div>
     </div>
 
     <nav>
-        <a href="#" class="nav-link active"><i class="fa-solid fa-shield-halved"></i>Terminal</a>
-        <a href="tel:+966500823643" class="nav-link"><i class="fa-solid fa-headset"></i>Support</a>
+        <div class="nav-item active"><i class="fa-solid fa-shield-halved"></i>Terminal</div>
+        <div class="nav-item" onclick="location.reload()"><i class="fa-solid fa-rotate"></i>Sync Data</div>
     </nav>
 
     <script>
-        const API = "https://script.google.com/macros/s/AKfycbzPo0RiY_A8MtF_zhnbmy9_gjcjRU7gtb3z6eoCO0ydZ4GndiqVYlq3vWj8SaZRsRx-/exec";
-        const PASS = "0809";
+        const scriptURL = "https://script.google.com/macros/s/AKfycbzPo0RiY_A8MtF_zhnbmy9_gjcjRU7gtb3z6eoCO0ydZ4GndiqVYlq3vWj8SaZRsRx-/exec";
         let db = [];
 
-        async function sync() {
-            const res = await fetch(API);
-            db = await res.json();
-            updateStats();
+        async function loadData() {
+            try {
+                const res = await fetch(scriptURL);
+                db = await res.json();
+                console.log("Data Received:", db[0]); // Debugging line
+            } catch(e) { console.error("Cloud Connection Error"); }
         }
 
-        function updateStats() {
-            document.getElementById('s-total').innerText = db.length;
-            document.getElementById('s-clear').innerText = db.filter(i => !String(i.status).includes('Inactive')).length;
-            document.getElementById('s-block').innerText = db.filter(i => String(i.status).includes('Inactive')).length;
+        function toggleTheme() {
+            const body = document.body;
+            body.setAttribute('data-theme', body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
         }
 
-        function runSearch() {
-            const q = document.getElementById('mainSearch').value.toLowerCase();
-            const res = document.getElementById('results');
-            if(!q) { res.innerHTML = ''; return; }
-            const filtered = db.filter(i => String(i.plate).toLowerCase().includes(q) || String(i.EmployeeName).toLowerCase().includes(q));
+        function performSearch() {
+            const q = document.getElementById('masterSearch').value.trim().toLowerCase();
+            const container = document.getElementById('resultsArea');
+            if(!q) { container.innerHTML = ''; return; }
+
+            // Using bracket notation to handle spaces in column names
+            const filtered = db.filter(i => 
+                String(i.plate || '').toLowerCase().includes(q) || 
+                String(i["Employee Name"] || '').toLowerCase().includes(q) || 
+                String(i.client || '').toLowerCase().includes(q)
+            );
             render(filtered);
         }
 
         function render(data) {
-            const res = document.getElementById('results');
-            res.innerHTML = '';
+            const container = document.getElementById('resultsArea');
+            container.innerHTML = '';
+            
             data.forEach(item => {
-                const idx = db.findIndex(x => x.plate === item.plate);
-                const isB = String(item.status).includes('Inactive');
+                // FIXED: Direct mapping to "Employee Name" from your Google Sheet
+                const empName = item["Employee Name"] || "Name Not Found";
+                const isNo = String(item.status || '').toLowerCase().includes('inactive');
+                
                 const card = document.createElement('div');
-                card.className = `asset-card ${isB ? 'revoked' : ''}`;
+                card.className = `asset-card ${isNo ? 'revoked' : ''}`;
                 card.innerHTML = `
-                    <div style="font-size:10px; color:var(--gold); font-weight:800;">${item.client || 'CLIENT'}</div>
-                    <div class="plate-main">${item.plate}</div>
-                    <div class="grid-info">
-                        <div class="grid-item"><label>Model</label><span>${item.model}</span></div>
-                        <div class="grid-item"><label>Color</label><span>${item.color}</span></div>
+                    <div class="card-label">Asset Client</div>
+                    <div class="client-val">${item.client || 'General Guest'}</div>
+                    
+                    <div class="plate-row">
+                        <div class="plate-num">${item.plate || '---'}</div>
+                        <div style="color:${isNo ? 'var(--danger)' : 'var(--success)'}; font-size:10px; font-weight:900;">
+                            ${isNo ? '● ACCESS REVOKED' : '● AUTHORIZED'}
+                        </div>
                     </div>
-                    <div class="emp-tag"><label>Staff Member</label><b>${item.EmployeeName || 'Unknown'}</b></div>
-                    <button class="edit-btn" onclick="openModal(false, ${idx})">EDIT ASSET</button>
+
+                    <div class="data-grid">
+                        <div class="data-item"><label>Car Model</label><span>${item.model || '-'}</span></div>
+                        <div class="data-item"><label>Color</label><span>${item.color || '-'}</span></div>
+                    </div>
+
+                    <div class="employee-footer">
+                        <label>Employee Name</label>
+                        <b>${empName}</b>
+                    </div>
                 `;
-                res.appendChild(card);
+                container.appendChild(card);
             });
         }
 
-        function openModal(isAdd, idx = null) {
-            const p = prompt("Admin PIN:"); if(p !== PASS) return;
-            if(isAdd) {
-                document.getElementById('f-idx').value = "-1";
-                ['f-client','f-plate','f-model','f-color','f-emp'].forEach(f => document.getElementById(f).value = "");
-            } else {
-                const i = db[idx];
-                document.getElementById('f-idx').value = idx;
-                document.getElementById('f-old-plate').value = i.plate;
-                document.getElementById('f-client').value = i.client;
-                document.getElementById('f-plate').value = i.plate;
-                document.getElementById('f-model').value = i.model;
-                document.getElementById('f-color').value = i.color;
-                document.getElementById('f-emp').value = i.EmployeeName;
-                document.getElementById('f-status').value = String(i.status).includes('Inactive') ? 'Inactive' : 'Active';
-            }
-            document.getElementById('mainModal').style.display = 'flex';
-        }
-
-        function closeModal() { document.getElementById('mainModal').style.display = 'none'; }
-
-        async function saveToCloud() {
-            const data = {
-                oldPlate: document.getElementById('f-old-plate').value,
-                client: document.getElementById('f-client').value,
-                plate: document.getElementById('f-plate').value.toUpperCase(),
-                model: document.getElementById('f-model').value,
-                color: document.getElementById('f-color').value,
-                EmployeeName: document.getElementById('f-emp').value,
-                status: document.getElementById('f-status').value
-            };
-            fetch(API, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
-            alert("Sent to Cloud");
-            closeModal();
-            sync();
-        }
-
-        sync();
+        loadData();
     </script>
 </body>
 </html>
