@@ -8,13 +8,13 @@
     <style>
         :root {
             --ios-bg: #000000;
-            --glass: rgba(28, 28, 30, 0.7);
+            --glass: rgba(28, 28, 30, 0.8);
             --matte-gold: #c5a358;
             --ios-green: #30d158;
             --ios-red: #ff453a;
             --text-main: #ffffff;
             --text-dim: #8e8e93;
-            --card-radius: 22px;
+            --card-radius: 20px;
         }
 
         body {
@@ -22,152 +22,142 @@
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
             background-color: var(--ios-bg);
             color: var(--text-main);
-            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
         }
 
         header {
-            padding: 50px 20px 20px;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: saturate(180%) blur(25px);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+            padding: 60px 20px 20px;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(20px);
+            position: sticky; top: 0; z-index: 1000;
             border-bottom: 0.5px solid rgba(255,255,255,0.1);
         }
 
-        .container { padding: 20px; max-width: 1200px; margin: 0 auto; }
+        .container { padding: 20px; max-width: 900px; margin: 0 auto; min-height: 70vh; }
 
-        /* Search Bar */
+        /* Search Bar iOS Style */
+        .search-wrapper { position: relative; max-width: 600px; margin: 0 auto 40px; }
         .search-container {
             background: #1c1c1e;
-            border-radius: 14px;
-            padding: 12px 18px;
-            display: flex;
-            align-items: center;
-            border: 0.5px solid rgba(197, 163, 88, 0.15);
-            margin-bottom: 30px;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
+            border-radius: 12px;
+            padding: 14px 18px;
+            display: flex; align-items: center;
+            border: 1px solid rgba(197, 163, 88, 0.2);
         }
-        .search-container input { background: none; border: none; color: white; width: 100%; font-size: 17px; outline: none; margin-left: 10px; }
+        .search-container input {
+            background: none; border: none; color: white; width: 100%; font-size: 17px; outline: none; margin-left: 10px;
+        }
 
-        /* Grid System */
+        /* Results Area */
         #cardsList {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 20px;
         }
 
-        /* Responsive Card Logic */
+        /* Empty State */
+        .empty-state {
+            text-align: center; color: var(--text-dim); margin-top: 100px; font-size: 15px;
+        }
+
+        /* Dynamic Card Styling */
         .car-card {
             background: var(--glass);
             border-radius: var(--card-radius);
-            padding: 24px;
-            border: 1px solid rgba(255,255,255,0.08);
-            position: relative;
-            transition: all 0.3s ease;
+            padding: 22px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Dynamic Status Styling */
-        .status-active-card { 
-            border-top: 4px solid var(--ios-green);
-            box-shadow: 0 10px 30px rgba(48, 209, 88, 0.1);
-        }
-        .status-inactive-card { 
-            border-top: 4px solid var(--ios-red);
-            box-shadow: 0 10px 30px rgba(255, 69, 58, 0.1);
-        }
+        /* Status Colors */
+        .status-active-card { border-left: 6px solid var(--ios-green); box-shadow: 0 10px 25px rgba(48, 209, 88, 0.05); }
+        .status-inactive-card { border-left: 6px solid var(--ios-red); box-shadow: 0 10px 25px rgba(255, 69, 58, 0.1); }
 
-        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
-        .plate-box h2 { margin: 0; font-size: 26px; color: var(--matte-gold); font-weight: 800; }
+        .card-header { display: flex; justify-content: space-between; margin-bottom: 15px; }
+        .plate-no { font-size: 24px; font-weight: 800; color: var(--matte-gold); letter-spacing: 1px; }
         
         .action-btn { 
-            background: rgba(255,255,255,0.05); 
-            width: 42px; height: 42px; border-radius: 12px; 
-            display: flex; align-items: center; justify-content: center; 
-            cursor: pointer; color: var(--matte-gold);
+            background: rgba(255,255,255,0.08); width: 38px; height: 38px; 
+            border-radius: 10px; display: flex; align-items: center; justify-content: center; 
+            color: var(--matte-gold); cursor: pointer;
         }
 
-        .card-info-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
+        .card-details {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
             padding-top: 15px; border-top: 0.5px solid rgba(255,255,255,0.1);
         }
-        .info-item label { display: block; font-size: 10px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 4px; }
-        .info-item span { font-size: 15px; font-weight: 500; }
+        .detail-item label { display: block; font-size: 10px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 2px; }
+        .detail-item span { font-size: 14px; font-weight: 500; }
 
-        /* FAB */
-        .fab {
-            position: fixed; bottom: 100px; right: 30px;
-            background: var(--matte-gold); width: 64px; height: 64px;
-            border-radius: 20px; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 15px 30px rgba(197, 163, 88, 0.3); z-index: 999; 
-            color: #000; font-size: 26px; cursor: pointer;
+        /* Floating Action Button (ADD) */
+        .fab-add {
+            position: fixed; bottom: 100px; right: 25px;
+            background: var(--matte-gold); width: 60px; height: 60px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4); z-index: 1001;
+            color: black; font-size: 24px; cursor: pointer;
+            transition: transform 0.2s;
         }
+        .fab-add:active { transform: scale(0.9); }
 
-        /* Modal */
+        /* Modal iOS Style */
         .ios-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.9); z-index: 2000; display: none;
             backdrop-filter: blur(20px);
         }
         .modal-content {
-            background: #1c1c1e; width: 90%; max-width: 500px;
-            margin: 50px auto; border-radius: 30px; overflow: hidden;
-            box-shadow: 0 25px 50px rgba(0,0,0,1);
+            background: #1c1c1e; width: 90%; max-width: 450px;
+            margin: 60px auto; border-radius: 25px; overflow: hidden;
         }
-        .modal-header { padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 0.5px solid #2c2c2e; }
-        .modal-body { padding: 30px; }
-
-        .ios-input-group { background: #2c2c2e; border-radius: 16px; margin-bottom: 20px; }
+        .modal-header { padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 0.5px solid #333; }
+        
+        .ios-input-group { background: #2c2c2e; border-radius: 14px; margin: 20px; overflow: hidden; }
         .ios-input-group input, .ios-input-group select {
-            width: 100%; padding: 16px; background: none; border: none; 
-            border-bottom: 0.5px solid #3a3a3c; color: white; font-size: 16px; outline: none;
+            width: 100%; padding: 15px; background: none; border: none; 
+            border-bottom: 0.5px solid #3d3d3f; color: white; font-size: 16px; outline: none; box-sizing: border-box;
         }
 
         /* Bottom Nav */
         .ios-nav {
             position: fixed; bottom: 0; left: 0; right: 0;
-            background: rgba(18, 18, 18, 0.9); backdrop-filter: blur(30px);
-            display: flex; padding: 12px 0 34px; border-top: 0.5px solid #333;
+            background: rgba(18, 18, 18, 0.85); backdrop-filter: blur(20px);
+            display: flex; padding: 10px 0 34px; border-top: 0.5px solid #333;
         }
-        .nav-item { flex: 1; text-align: center; color: var(--text-dim); font-size: 11px; cursor: pointer; }
+        .nav-item { flex: 1; text-align: center; color: var(--text-dim); font-size: 10px; cursor: pointer; }
         .nav-item.active { color: var(--matte-gold); }
-        .nav-item i { font-size: 24px; margin-bottom: 5px; display: block; }
+        .nav-item i { font-size: 22px; margin-bottom: 4px; display: block; }
     </style>
 </head>
 <body>
 
     <header>
-        <div style="max-width:1200px; margin:0 auto; display:flex; justify-content:space-between; align-items:center;">
+        <div style="max-width:900px; margin:0 auto; display:flex; justify-content:space-between; align-items:center;">
             <div>
-                <span style="color:var(--matte-gold); font-size:12px; letter-spacing:2px;">MAJDOUL TOWER</span>
-                <h1 style="margin:0;">Parking Terminal</h1>
+                <span style="color:var(--matte-gold); font-size:11px; letter-spacing:2px; font-weight:600;">MAJDOUL TOWER</span>
+                <h1 style="margin:0; font-size: 28px;">Parking</h1>
             </div>
-            <div class="action-btn" onclick="location.reload()"><i class="fa-solid fa-rotate"></i></div>
+            <div class="action-btn" onclick="location.reload()"><i class="fa-solid fa-rotate-right"></i></div>
         </div>
     </header>
 
     <div class="container">
-        <section id="page-search">
+        <div class="search-wrapper">
             <div class="search-container">
                 <i class="fa-solid fa-magnifying-glass" style="color:var(--text-dim)"></i>
-                <input type="text" id="masterSearch" placeholder="Search by plate, name, or company..." oninput="unifiedSearch()">
+                <input type="text" id="masterSearch" placeholder="Type Plate or Name to search..." oninput="unifiedSearch()">
             </div>
-            <div id="cardsList"></div>
-        </section>
+        </div>
 
-        <section id="page-info" style="display:none; text-align:center; padding-top:50px;">
-            <div class="car-card" style="max-width:400px; margin:0 auto;">
-                <h3 style="color:var(--matte-gold)">Support & Dev</h3>
-                <p><b>Asim Aljma'an</b></p>
-                <p style="color:var(--text-dim)">asimaljmaan@hotmail.com</p>
-                <p>+966500823643</p>
+        <div id="cardsList">
+            <div class="empty-state">
+                <i class="fa-solid fa-car-side" style="font-size: 40px; margin-bottom: 15px; opacity: 0.3;"></i>
+                <p>Waiting for search input...</p>
             </div>
-        </section>
+        </div>
     </div>
 
-    <div class="fab" onclick="openNewVehicleModal()">
+    <div class="fab-add" onclick="openNewVehicleModal()">
         <i class="fa-solid fa-plus"></i>
     </div>
 
@@ -176,29 +166,27 @@
             <div class="modal-header">
                 <span onclick="closeModal()" style="color:var(--matte-gold); cursor:pointer;">Cancel</span>
                 <b id="modalTitle">Edit Vehicle</b>
-                <span onclick="saveData()" style="color:var(--matte-gold); font-weight:700; cursor:pointer;">Save</span>
+                <span onclick="saveData()" style="color:var(--matte-gold); font-weight:700; cursor:pointer;">Done</span>
             </div>
-            <div class="modal-body">
-                <div class="ios-input-group">
-                    <input type="hidden" id="field-idx">
-                    <input type="hidden" id="field-old-plate">
-                    <input type="text" id="field-plate" placeholder="Plate Number">
-                    <input type="text" id="field-emp" placeholder="Driver Name">
-                    <input type="text" id="field-client" placeholder="Company">
-                    <input type="text" id="field-model" placeholder="Model">
-                    <input type="text" id="field-color" placeholder="Color">
-                    <select id="field-status">
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
-                    </select>
-                </div>
+            <div class="ios-input-group">
+                <input type="hidden" id="field-idx">
+                <input type="hidden" id="field-old-plate">
+                <input type="text" id="field-plate" placeholder="Plate Number">
+                <input type="text" id="field-emp" placeholder="Driver Name">
+                <input type="text" id="field-client" placeholder="Client / Company">
+                <input type="text" id="field-model" placeholder="Car Model">
+                <input type="text" id="field-color" placeholder="Color">
+                <select id="field-status">
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                </select>
             </div>
         </div>
     </div>
 
     <nav class="ios-nav">
-        <div class="nav-item active" onclick="switchTab('page-search', this)"><i class="fa-solid fa-magnifying-glass"></i>Search</div>
-        <div class="nav-item" onclick="switchTab('page-info', this)"><i class="fa-solid fa-circle-info"></i>Info</div>
+        <div class="nav-item active" onclick="switchTab('search')"><i class="fa-solid fa-magnifying-glass"></i>Search</div>
+        <div class="nav-item" onclick="showSupport()"><i class="fa-solid fa-circle-info"></i>Support</div>
     </nav>
 
     <script>
@@ -210,47 +198,63 @@
             try {
                 const res = await fetch(scriptURL);
                 db = await res.json();
-                renderCards(db);
-            } catch(e) { console.error("Sync error"); }
+                console.log("Database synced");
+            } catch(e) { console.error("Connection failed"); }
         }
 
         function unifiedSearch() {
-            const q = document.getElementById('masterSearch').value.toLowerCase();
+            const q = document.getElementById('masterSearch').value.trim().toLowerCase();
+            const list = document.getElementById('cardsList');
+            
+            // شرط: إذا كان البحث فارغاً، لا تظهر أي بطاقات
+            if (q.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-car-side" style="font-size: 40px; margin-bottom: 15px; opacity: 0.3;"></i>
+                        <p>Waiting for search input...</p>
+                    </div>`;
+                return;
+            }
+
             const filtered = db.filter(i => 
                 String(i.plate).toLowerCase().includes(q) || 
                 String(i.emp).toLowerCase().includes(q) ||
                 String(i.client).toLowerCase().includes(q)
             );
+
             renderCards(filtered);
         }
 
         function renderCards(data) {
             const list = document.getElementById('cardsList');
             list.innerHTML = '';
+            
+            if (data.length === 0) {
+                list.innerHTML = '<div class="empty-state">No matching vehicles found.</div>';
+                return;
+            }
+
             data.forEach(item => {
-                // تصحيح منطق التحقق من الحالة ليكون دقيقاً
                 const statusStr = String(item.status || 'Active').toLowerCase();
                 const isActive = statusStr.includes('active') && !statusStr.includes('inactive');
-                
                 const realIdx = db.findIndex(x => x.plate === item.plate);
                 
                 const card = document.createElement('div');
-                // تطبيق الكلاس بناءً على الحالة
                 card.className = `car-card ${isActive ? 'status-active-card' : 'status-inactive-card'}`;
                 
                 card.innerHTML = `
                     <div class="card-header">
                         <div class="plate-box">
-                            <h2>${item.plate}</h2>
-                            <p>${item.client || 'Client'}</p>
+                            <div class="plate-no">${item.plate}</div>
+                            <div style="font-size:12px; color:var(--text-dim);">${item.client || 'Client'}</div>
                         </div>
-                        <div class="action-btn" onclick="openEditModal(${realIdx})"><i class="fa-solid fa-ellipsis"></i></div>
+                        <div class="action-btn" onclick="openEditModal(${realIdx})"><i class="fa-solid fa-pencil"></i></div>
                     </div>
-                    <div class="card-info-grid">
-                        <div class="info-item"><label>Driver</label><span>${item.emp || '-'}</span></div>
-                        <div class="info-item"><label>Model</label><span>${item.model || '-'}</span></div>
-                        <div class="info-item"><label>Color</label><span>${item.color || '-'}</span></div>
-                        <div class="info-item"><label>Status</label><span style="color:${isActive ? 'var(--ios-green)' : 'var(--ios-red)'}">${isActive ? 'Active' : 'Inactive'}</span></div>
+                    <div class="card-details">
+                        <div class="detail-item"><label>Driver</label><span>${item.emp || '-'}</span></div>
+                        <div class="detail-item"><label>Model</label><span>${item.model || '-'}</span></div>
+                        <div class="detail-item"><label>Color</label><span>${item.color || '-'}</span></div>
+                        <div class="detail-item"><label>Status</label><span style="color:${isActive ? 'var(--ios-green)' : 'var(--ios-red)'}">${isActive ? 'Active' : 'Inactive'}</span></div>
                     </div>
                 `;
                 list.appendChild(card);
@@ -259,7 +263,7 @@
 
         function openEditModal(idx) {
             const item = db[idx];
-            document.getElementById('modalTitle').innerText = "Edit Vehicle";
+            document.getElementById('modalTitle').innerText = "Update Vehicle";
             document.getElementById('field-idx').value = idx;
             document.getElementById('field-old-plate').value = item.plate;
             document.getElementById('field-plate').value = item.plate;
@@ -267,17 +271,14 @@
             document.getElementById('field-client').value = item.client || '';
             document.getElementById('field-model').value = item.model || '';
             document.getElementById('field-color').value = item.color || '';
-            
-            const statusStr = String(item.status || 'Active').toLowerCase();
-            document.getElementById('field-status').value = statusStr.includes('inactive') ? 'Inactive' : 'Active';
-            
+            document.getElementById('field-status').value = String(item.status).includes('Inactive') ? 'Inactive' : 'Active';
             document.getElementById('iosModal').style.display = 'block';
         }
 
         function openNewVehicleModal() {
-            const pass = prompt("Admin Password:");
+            const pass = prompt("Admin Password to Add New Vehicle:");
             if(pass !== ADMIN_PASS) return;
-            document.getElementById('modalTitle').innerText = "New Vehicle";
+            document.getElementById('modalTitle').innerText = "Register Vehicle";
             document.getElementById('field-idx').value = "-1";
             document.getElementById('field-old-plate').value = "NEW";
             ['field-plate', 'field-emp', 'field-client', 'field-model', 'field-color'].forEach(f => document.getElementById(f).value = "");
@@ -287,7 +288,7 @@
         function closeModal() { document.getElementById('iosModal').style.display = 'none'; }
 
         async function saveData() {
-            const pass = prompt("Confirm Password:");
+            const pass = prompt("Confirm Password to Sync:");
             if (pass !== ADMIN_PASS) return;
 
             const idx = document.getElementById('field-idx').value;
@@ -304,17 +305,14 @@
             try {
                 fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(updated) });
                 if(idx === "-1") db.push(updated); else db[idx] = updated;
-                alert("Cloud Sync Successful");
+                alert("Success: Cloud Database Updated");
                 closeModal();
                 unifiedSearch();
-            } catch(e) { alert("Error"); }
+            } catch(e) { alert("Sync Failed"); }
         }
 
-        function switchTab(tabId, el) {
-            document.querySelectorAll('section').forEach(s => s.style.display = 'none');
-            document.getElementById(tabId).style.display = 'block';
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            el.classList.add('active');
+        function showSupport() {
+            alert("Developer: Asim Aljma'an\nEmail: asimaljmaan@hotmail.com\nPhone: +966500823643");
         }
 
         loadData();
