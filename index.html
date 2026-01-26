@@ -82,8 +82,9 @@
         <div class="glass-panel" style="max-width: 500px; margin: 40px auto;">
             <h3>تعديل البيانات</h3>
             <input type="hidden" id="edit-idx">
+            <input type="hidden" id="old-plate">
             <label>الموظف</label><input type="text" id="edit-emp">
-            <label>اللوحة</label><input type="text" id="edit-plate" readonly>
+            <label>اللوحة (قابلة للتعديل)</label><input type="text" id="edit-plate">
             <label>الشركة</label><input type="text" id="edit-client">
             <label>الموديل</label><input type="text" id="edit-model">
             <button class="submit-btn" id="saveBtn" onclick="saveEdits()">حفظ في جوجل شيت</button>
@@ -158,6 +159,7 @@
             document.getElementById('edit-idx').value = idx;
             document.getElementById('edit-emp').value = item.emp || '';
             document.getElementById('edit-plate').value = item.plate || '';
+            document.getElementById('old-plate').value = item.plate || ''; 
             document.getElementById('edit-client').value = item.client || '';
             document.getElementById('edit-model').value = item.model || '';
             document.getElementById('editModal').style.display = 'block';
@@ -166,13 +168,18 @@
         function closeEditModal() { document.getElementById('editModal').style.display = 'none'; }
 
         async function saveEdits() {
-            const pass = prompt("كلمة السر:");
-            if (pass !== ADMIN_PASSWORD) return alert("خطأ!");
+            // 1. التحقق من كلمة السر
+            const pass = prompt("الرجاء إدخال كلمة السر للاعتماد:");
+            if (pass !== ADMIN_PASSWORD) {
+                if(pass !== null) alert("كلمة السر خاطئة!");
+                return;
+            }
 
             const idx = document.getElementById('edit-idx').value;
             const updated = {
-                emp: document.getElementById('edit-emp').value,
+                oldPlate: document.getElementById('old-plate').value,
                 plate: document.getElementById('edit-plate').value,
+                emp: document.getElementById('edit-emp').value,
                 client: document.getElementById('edit-client').value,
                 model: document.getElementById('edit-model').value
             };
@@ -181,13 +188,24 @@
             btn.innerText = "جاري الحفظ..."; btn.disabled = true;
 
             try {
+                // إرسال البيانات
                 await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(updated) });
+                
+                // تحديث قاعدة البيانات محلياً
                 db[idx] = {...db[idx], ...updated};
-                alert("تم التحديث!");
+                
+                alert("تم التحديث بنجاح!");
                 closeEditModal();
-                searchByPlate() || searchByInfo();
-            } catch(e) { alert("فشل الاتصال"); }
-            finally { btn.innerText = "حفظ في جوجل شيت"; btn.disabled = false; }
+                
+                // إعادة عرض النتائج المحدثة
+                if(document.getElementById('plateSearch').value) searchByPlate();
+                else if(document.getElementById('infoSearch').value) searchByInfo();
+                
+            } catch(e) { 
+                alert("فشل الاتصال بجوجل شيت"); 
+            } finally { 
+                btn.innerText = "حفظ في جوجل شيت"; btn.disabled = false; 
+            }
         }
 
         function switchPage(p, el) {
@@ -199,7 +217,7 @@
 
         function confirmEntry() {
             if(!activeCar) return alert("اختر سيارة");
-            alert("تم التسجيل بنجاح");
+            alert("تم التسجيل بنجاح في الموقع");
         }
 
         loadData();
