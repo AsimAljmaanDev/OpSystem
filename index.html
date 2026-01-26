@@ -1,114 +1,246 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>نظام مواقف برج مجدول</title>
+    <title>Majdoul Tower Parking System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
-            --bg-color: #f2f2f7; --card-bg: rgba(255, 255, 255, 0.85);
-            --text-color: #1c1c1e; --accent: #007aff;
-            --glass-border: rgba(0, 0, 0, 0.1); --input-bg: rgba(120, 120, 128, 0.12);
-            --status-active: #34c759; --status-inactive: #ff3b30;
-            --container-width: 500px;
+            --bg-dark: #0a0a0a;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --gold: #d4af37;
+            --gold-gradient: linear-gradient(135deg, #d4af37 0%, #f9e27d 50%, #b38728 100%);
+            --text-main: #ffffff;
+            --text-dim: #b5b5b5;
+            --status-active: #34c759;
+            --status-inactive: #ff3b30;
         }
-        body.dark { --bg-color: #000000; --card-bg: rgba(28, 28, 30, 0.9); --text-color: #ffffff; --input-bg: rgba(120, 120, 128, 0.24); }
-        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; background-color: var(--bg-color); color: var(--text-color); transition: 0.3s; padding-bottom: 100px; }
-        header { background: var(--card-bg); backdrop-filter: blur(20px); padding: 10px 20px; border-bottom: 0.5px solid var(--glass-border); position: sticky; top: 0; z-index: 1000; }
-        .header-content { max-width: var(--container-width); margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
-        .logo-majdoul { height: 40px; } .logo-link { height: 30px; }
-        .container { max-width: var(--container-width); margin: 0 auto; padding: 20px; }
-        .page-section { display: none; } .page-section.active { display: block; }
-        .car-card { background: var(--card-bg); border-radius: 20px; padding: 20px; margin-bottom: 15px; border-right: 8px solid #ccc; position: relative; cursor: pointer; animation: slideUp 0.3s; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .car-card.active-status { border-right-color: var(--status-active); }
-        .edit-icon { position: absolute; left: 15px; top: 15px; color: var(--accent); padding: 10px; font-size: 18px; }
-        .glass-panel { background: var(--card-bg); backdrop-filter: blur(30px); border-radius: 25px; padding: 25px; border: 0.5px solid var(--glass-border); }
-        input, select { width: 100%; padding: 15px; border-radius: 12px; border: none; background: var(--input-bg); color: var(--text-color); margin-bottom: 15px; font-size: 16px; box-sizing: border-box; }
-        .submit-btn { width: 100%; padding: 16px; background: var(--accent); color: white; border: none; border-radius: 15px; font-size: 17px; font-weight: 600; cursor: pointer; }
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); display: flex; padding: 10px 0 25px; border-top: 0.5px solid var(--glass-border); }
-        .nav-tab { flex: 1; text-align: center; color: #8e8e93; cursor: pointer; }
-        .nav-tab.active { color: var(--accent); }
-        #editModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 2000; display: none; padding: 20px; box-sizing: border-box; overflow-y: auto; }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            background-image: radial-gradient(circle at top right, #1a1a1a, #0a0a0a);
+            padding-bottom: 80px;
+        }
+
+        /* Luxury Header */
+        header {
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(15px);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-title {
+            font-size: 1.4rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+
+        .container { max-width: 550px; margin: 0 auto; padding: 20px; }
+
+        /* Liquid Glass Panels */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+            margin-bottom: 25px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            transition: 0.3s;
+        }
+
+        input:focus { border-color: var(--gold); outline: none; background: rgba(255, 255, 255, 0.1); }
+
+        /* Gold Luxury Button */
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--gold-gradient);
+            color: #000;
+            border: none;
+            border-radius: 15px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .submit-btn:active { transform: scale(0.98); }
+
+        /* Car Cards */
+        .car-card {
+            background: var(--glass-bg);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--gold);
+            position: relative;
+            animation: fadeIn 0.5s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .plate-no { font-size: 1.3rem; font-weight: 800; color: var(--gold); }
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
+        .status-active { background: rgba(52, 199, 89, 0.2); color: #34c759; border: 1px solid #34c759; }
+        .status-inactive { background: rgba(255, 59, 48, 0.2); color: #ff3b30; border: 1px solid #ff3b30; }
+
+        .card-details { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.85rem; color: var(--text-dim); }
+        .card-details span b { color: var(--text-main); }
+
+        .edit-btn-icon { color: var(--gold); cursor: pointer; font-size: 1.2rem; }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: rgba(10, 10, 10, 0.95);
+            display: flex; padding: 12px 0 25px;
+            border-top: 1px solid rgba(212, 175, 55, 0.2);
+            backdrop-filter: blur(20px);
+        }
+
+        .nav-tab { flex: 1; text-align: center; color: var(--text-dim); cursor: pointer; transition: 0.3s; }
+        .nav-tab.active { color: var(--gold); transform: translateY(-3px); }
+        .nav-tab i { font-size: 1.4rem; display: block; margin-bottom: 4px; }
+
+        /* Modal */
+        #editModal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000; display: none; padding: 20px; box-sizing: border-box;
+            overflow-y: auto; backdrop-filter: blur(10px);
+        }
+
+        /* Footer / Support */
+        .footer-support {
+            margin-top: 40px;
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+        .footer-support b { color: var(--gold); }
+        .contact-links { margin-top: 10px; display: flex; justify-content: center; gap: 20px; font-size: 1.1rem; }
+        .contact-links a { color: var(--gold); text-decoration: none; }
+
     </style>
 </head>
-<body class="dark">
+<body>
 
     <header>
-        <div class="header-content">
-            <img src="majdoul.png" class="logo-majdoul">
-            <div class="top-actions"><i class="fas fa-adjust icon-btn" onclick="document.body.classList.toggle('dark')"></i></div>
-            <img src="linkexpert.png" class="logo-link">
-        </div>
+        <div class="header-title">MAJDOUL PARKING SYSTEM</div>
     </header>
 
     <div class="container">
         <section id="page-search" class="page-section active">
             <div class="glass-panel">
-                <label>البحث بواسطة اللوحة</label>
-                <input type="text" id="plateSearch" placeholder="أدخل رقم اللوحة..." oninput="searchByPlate()">
-                <hr style="opacity: 0.1; margin: 20px 0;">
-                <label>البحث بواسطة (الاسم، اللون، أو الموديل)</label>
-                <input type="text" id="infoSearch" placeholder="أدخل الاسم أو الموديل..." oninput="searchByInfo()">
+                <label style="color: var(--gold); font-weight: bold; display: block; margin-bottom: 10px;">Search Vehicle</label>
+                <input type="text" id="plateSearch" placeholder="Enter Plate Number..." oninput="searchByPlate()">
+                <input type="text" id="infoSearch" placeholder="Search by Name, Model, or Client..." oninput="searchByInfo()">
             </div>
             <div id="cardsResult"></div>
         </section>
 
         <section id="page-inventory" class="page-section">
             <div class="glass-panel">
-                <h2>📝 تسجيل موقف</h2>
-                <input type="text" id="selectedLabel" readonly placeholder="اختر مركبة من البحث">
+                <h2 style="color: var(--gold)">Register Entry</h2>
+                <input type="text" id="selectedLabel" readonly placeholder="Selected Vehicle">
                 <select id="unitSelect">
                     <option>P1</option><option>P1-VIP</option><option>P2</option><option>P3</option><option>P4</option><option>Landscape</option>
                 </select>
-                <input type="number" id="slotNo" placeholder="رقم الموقف">
-                <button class="submit-btn" onclick="confirmEntry()">تأكيد</button>
+                <input type="number" id="slotNo" placeholder="Parking Slot Number">
+                <button class="submit-btn" onclick="confirmEntry()">Confirm Registration</button>
             </div>
         </section>
 
         <section id="page-results" class="page-section">
-            <div id="captureArea">
-                <div class="glass-panel">
-                    <h3>🅿️ إحصائيات اليوم</h3>
-                    <div id="unitCounts"></div>
-                </div>
+            <div class="glass-panel">
+                <h3 style="color: var(--gold)">Parking Stats</h3>
+                <div id="unitCounts">Refreshing data...</div>
             </div>
-            <button class="submit-btn" style="margin-top:20px; background:#34c759" onclick="location.reload()"><i class="fas fa-sync"></i> تحديث البيانات</button>
+            <button class="submit-btn" style="background: var(--glass-bg); color: var(--gold); border: 1px solid var(--gold);" onclick="location.reload()">
+                <i class="fas fa-sync"></i> Refresh Database
+            </button>
+
+            <div class="footer-support">
+                <p>Designed & Developed by <b>Asim Aljma'an</b></p>
+                <div class="contact-links">
+                    <a href="mailto:asimaljmaan@hotmail.com"><i class="fas fa-envelope"></i></a>
+                    <a href="tel:+966500823643"><i class="fas fa-phone"></i></a>
+                    <a href="https://wa.me/966500823643"><i class="fab fa-whatsapp"></i></a>
+                </div>
+                <p style="margin-top:15px; opacity:0.5; font-size: 0.7rem;">&copy; 2024 All Rights Reserved</p>
+            </div>
         </section>
     </div>
 
     <div id="editModal">
         <div class="glass-panel" style="max-width: 500px; margin: 40px auto;">
-            <h3>تعديل البيانات</h3>
+            <h3 style="color: var(--gold)">Edit Vehicle Data</h3>
             <input type="hidden" id="edit-idx">
             <input type="hidden" id="old-plate">
-            <label>الموظف</label><input type="text" id="edit-emp">
-            <label>اللوحة (قابلة للتعديل)</label><input type="text" id="edit-plate">
-            <label>الشركة</label><input type="text" id="edit-client">
-            <label>الموديل</label><input type="text" id="edit-model">
-            <button class="submit-btn" id="saveBtn" onclick="saveEdits()">حفظ في جوجل شيت</button>
-            <button class="submit-btn" style="background:#8e8e93; margin-top:10px" onclick="closeEditModal()">إلغاء</button>
+            
+            <label>Employee Name</label><input type="text" id="edit-emp">
+            <label>Plate Number</label><input type="text" id="edit-plate">
+            <label>Client / Company</label><input type="text" id="edit-client">
+            <label>Car Model</label><input type="text" id="edit-model">
+            <label>Color</label><input type="text" id="edit-color">
+            
+            <label>Status</label>
+            <select id="edit-status">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+            </select>
+
+            <button class="submit-btn" id="saveBtn" onclick="saveEdits()">Update Database</button>
+            <button class="submit-btn" style="background:transparent; color: #8e8e93; margin-top:10px" onclick="closeEditModal()">Cancel</button>
         </div>
     </div>
 
     <nav class="bottom-nav">
-        <div class="nav-tab active" onclick="switchPage('page-search', this)"><i class="fas fa-search"></i><span>البحث</span></div>
-        <div class="nav-tab" onclick="switchPage('page-inventory', this)"><i class="fas fa-plus"></i><span>التسجيل</span></div>
-        <div class="nav-tab" onclick="switchPage('page-results', this)"><i class="fas fa-chart-pie"></i><span>النتائج</span></div>
+        <div class="nav-tab active" onclick="switchPage('page-search', this)"><i class="fas fa-search"></i><span>Search</span></div>
+        <div class="nav-tab" onclick="switchPage('page-inventory', this)"><i class="fas fa-car"></i><span>Check-in</span></div>
+        <div class="nav-tab" onclick="switchPage('page-results', this)"><i class="fas fa-info-circle"></i><span>Info</span></div>
     </nav>
 
     <script>
-        const scriptURL = "https://script.google.com/macros/s/AKfycbzPo0RiY_A8MtF_zhnbmy9_gjcjRU7gtb3z6eoCO0ydZ4GndiqVYlq3vWj8SaZRsRx-/exec"; 
+        const scriptURL = "https://script.google.com/macros/s/AKfycbxrEzkrbDUxP9gaVfcDSzc_-xIW1MsaAetdBcbUNbVyRuq2CGaZLt_sb8xBw0AWe294/exec"; 
         const ADMIN_PASSWORD = "0809";
         let db = [];
-        let activeCar = null;
 
         async function loadData() {
             try {
                 const res = await fetch(scriptURL);
                 db = await res.json();
-                console.log("Data Loaded:", db.length, "rows");
+                console.log("Database Loaded");
             } catch(e) { console.error("Load Error"); }
         }
 
@@ -131,22 +263,28 @@
         function render(filtered) {
             const container = document.getElementById('cardsResult');
             container.innerHTML = '';
-            if(!document.getElementById('plateSearch').value && !document.getElementById('infoSearch').value) return;
+            if(!filtered.length) return;
 
             filtered.slice(0, 15).forEach(item => {
                 const realIdx = db.findIndex(x => x.plate === item.plate);
-                const isActive = item.status && (String(item.status).includes('نشط') || String(item.status).toLowerCase().includes('active'));
+                const isActive = String(item.status).toLowerCase().includes('active');
                 
                 const card = document.createElement('div');
-                card.className = `car-card ${isActive ? 'active-status' : ''}`;
+                card.className = `car-card`;
                 card.innerHTML = `
-                    <i class="fas fa-edit edit-icon" onclick="openEdit(${realIdx}); event.stopPropagation();"></i>
-                    <h3>${item.plate}</h3>
-                    <p><b>الموظف:</b> ${item.emp || 'غير مسجل'}</p>
-                    <p><b>الشركة:</b> ${item.client || '-'}</p>
+                    <div class="card-header">
+                        <span class="plate-no">${item.plate}</span>
+                        <span class="status-badge ${isActive ? 'status-active' : 'status-inactive'}">${item.status || 'Unknown'}</span>
+                        <i class="fas fa-pen-fancy edit-btn-icon" onclick="openEdit(${realIdx}); event.stopPropagation();"></i>
+                    </div>
+                    <div class="card-details">
+                        <span><b>User:</b> ${item.emp || 'N/A'}</span>
+                        <span><b>Client:</b> ${item.client || 'N/A'}</span>
+                        <span><b>Model:</b> ${item.model || 'N/A'}</span>
+                        <span><b>Color:</b> ${item.color || 'N/A'}</span>
+                    </div>
                 `;
                 card.onclick = () => {
-                    activeCar = item;
                     document.getElementById('selectedLabel').value = item.plate;
                     switchPage('page-inventory', document.querySelectorAll('.nav-tab')[1]);
                 };
@@ -157,23 +295,21 @@
         function openEdit(idx) {
             const item = db[idx];
             document.getElementById('edit-idx').value = idx;
+            document.getElementById('old-plate').value = item.plate;
             document.getElementById('edit-emp').value = item.emp || '';
             document.getElementById('edit-plate').value = item.plate || '';
-            document.getElementById('old-plate').value = item.plate || ''; 
             document.getElementById('edit-client').value = item.client || '';
             document.getElementById('edit-model').value = item.model || '';
+            document.getElementById('edit-color').value = item.color || '';
+            document.getElementById('edit-status').value = String(item.status).includes('Inactive') ? 'Inactive' : 'Active';
             document.getElementById('editModal').style.display = 'block';
         }
 
         function closeEditModal() { document.getElementById('editModal').style.display = 'none'; }
 
         async function saveEdits() {
-            // 1. التحقق من كلمة السر
-            const pass = prompt("الرجاء إدخال كلمة السر للاعتماد:");
-            if (pass !== ADMIN_PASSWORD) {
-                if(pass !== null) alert("كلمة السر خاطئة!");
-                return;
-            }
+            const pass = prompt("Enter Admin Password:");
+            if (pass !== ADMIN_PASSWORD) return pass === null ? null : alert("Access Denied!");
 
             const idx = document.getElementById('edit-idx').value;
             const updated = {
@@ -181,31 +317,22 @@
                 plate: document.getElementById('edit-plate').value,
                 emp: document.getElementById('edit-emp').value,
                 client: document.getElementById('edit-client').value,
-                model: document.getElementById('edit-model').value
+                model: document.getElementById('edit-model').value,
+                color: document.getElementById('edit-color').value,
+                status: document.getElementById('edit-status').value
             };
 
             const btn = document.getElementById('saveBtn');
-            btn.innerText = "جاري الحفظ..."; btn.disabled = true;
+            btn.innerText = "Syncing..."; btn.disabled = true;
 
             try {
-                // إرسال البيانات
                 await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(updated) });
-                
-                // تحديث قاعدة البيانات محلياً
                 db[idx] = {...db[idx], ...updated};
-                
-                alert("تم التحديث بنجاح!");
+                alert("Database Updated Successfully!");
                 closeEditModal();
-                
-                // إعادة عرض النتائج المحدثة
-                if(document.getElementById('plateSearch').value) searchByPlate();
-                else if(document.getElementById('infoSearch').value) searchByInfo();
-                
-            } catch(e) { 
-                alert("فشل الاتصال بجوجل شيت"); 
-            } finally { 
-                btn.innerText = "حفظ في جوجل شيت"; btn.disabled = false; 
-            }
+                searchByPlate();
+            } catch(e) { alert("Sync Failed"); }
+            finally { btn.innerText = "Update Database"; btn.disabled = false; }
         }
 
         function switchPage(p, el) {
@@ -216,8 +343,9 @@
         }
 
         function confirmEntry() {
-            if(!activeCar) return alert("اختر سيارة");
-            alert("تم التسجيل بنجاح في الموقع");
+            const plate = document.getElementById('selectedLabel').value;
+            if(!plate) return alert("Please select a vehicle first");
+            alert(`Registered: ${plate} at Slot ${document.getElementById('slotNo').value}`);
         }
 
         loadData();
