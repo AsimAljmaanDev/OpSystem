@@ -46,8 +46,11 @@
     <div class="container">
         <section id="page-search" class="page-section active">
             <div class="glass-panel">
-                <label>بحث باللوحة أو الموظف</label>
-                <input type="text" id="mainSearch" placeholder="ابحث هنا..." oninput="doSearch()">
+                <label>البحث بواسطة اللوحة</label>
+                <input type="text" id="plateSearch" placeholder="أدخل رقم اللوحة..." oninput="searchByPlate()">
+                <hr style="opacity: 0.1; margin: 20px 0;">
+                <label>البحث بواسطة (الاسم، اللون، أو الموديل)</label>
+                <input type="text" id="infoSearch" placeholder="أدخل الاسم أو الموديل..." oninput="searchByInfo()">
             </div>
             <div id="cardsResult"></div>
         </section>
@@ -71,7 +74,7 @@
                     <div id="unitCounts"></div>
                 </div>
             </div>
-            <button class="submit-btn" style="margin-top:20px; background:#34c759" onclick="location.reload()"><i class="fas fa-sync"></i> تحديث البيانات من جوجل</button>
+            <button class="submit-btn" style="margin-top:20px; background:#34c759" onclick="location.reload()"><i class="fas fa-sync"></i> تحديث البيانات</button>
         </section>
     </div>
 
@@ -97,40 +100,49 @@
     <script>
         const scriptURL = "https://script.google.com/macros/s/AKfycbz21z4_jviYamObvLbA6xVy87UR6PLe2jrEjJQ-mwZfDw-TNALRgr6dqhrP_HoXW4Ig/exec"; 
         const ADMIN_PASSWORD = "0809";
-
         let db = [];
-        let logs = [];
         let activeCar = null;
 
         async function loadData() {
             try {
                 const res = await fetch(scriptURL);
                 db = await res.json();
-                console.log("Data Loaded Successfully");
-            } catch(e) { console.error("Error loading data"); }
+                console.log("Data Loaded:", db.length, "rows");
+            } catch(e) { console.error("Load Error"); }
         }
 
-        function doSearch() {
-            const q = document.getElementById('mainSearch').value.toLowerCase();
+        function searchByPlate() {
+            document.getElementById('infoSearch').value = '';
+            const q = document.getElementById('plateSearch').value.toLowerCase();
+            render(db.filter(i => String(i.plate).toLowerCase().includes(q)));
+        }
+
+        function searchByInfo() {
+            document.getElementById('plateSearch').value = '';
+            const q = document.getElementById('infoSearch').value.toLowerCase();
+            render(db.filter(i => 
+                String(i.emp).toLowerCase().includes(q) || 
+                String(i.client).toLowerCase().includes(q) || 
+                String(i.model).toLowerCase().includes(q)
+            ));
+        }
+
+        function render(filtered) {
             const container = document.getElementById('cardsResult');
             container.innerHTML = '';
-            if(!q) return;
+            if(!document.getElementById('plateSearch').value && !document.getElementById('infoSearch').value) return;
 
-            const filtered = db.filter(i => 
-                (i.plate && i.plate.toLowerCase().includes(q)) || 
-                (i.emp && i.emp.toLowerCase().includes(q))
-            );
-
-            filtered.slice(0, 10).forEach(item => {
+            filtered.slice(0, 15).forEach(item => {
                 const realIdx = db.findIndex(x => x.plate === item.plate);
-                const isActive = item.status && (item.status.includes('نشط') || item.status.toLowerCase().includes('active'));
+                const isActive = item.status && (String(item.status).includes('نشط') || String(item.status).toLowerCase().includes('active'));
+                
                 const card = document.createElement('div');
                 card.className = `car-card ${isActive ? 'active-status' : ''}`;
                 card.innerHTML = `
                     <i class="fas fa-edit edit-icon" onclick="openEdit(${realIdx}); event.stopPropagation();"></i>
                     <h3>${item.plate}</h3>
-                    <p><b>الموظف:</b> ${item.emp}</p>
-                    <p><b>الشركة:</b> ${item.client}</p>
+                    <p><b>الموظف:</b> ${item.emp || 'غير مسجل'}</p>
+                    <p><b>الشركة:</b> ${item.client || '-'}</p>
                 `;
                 card.onclick = () => {
                     activeCar = item;
@@ -144,22 +156,18 @@
         function openEdit(idx) {
             const item = db[idx];
             document.getElementById('edit-idx').value = idx;
-            document.getElementById('edit-emp').value = item.emp;
-            document.getElementById('edit-plate').value = item.plate;
-            document.getElementById('edit-client').value = item.client;
-            document.getElementById('edit-model').value = item.model;
+            document.getElementById('edit-emp').value = item.emp || '';
+            document.getElementById('edit-plate').value = item.plate || '';
+            document.getElementById('edit-client').value = item.client || '';
+            document.getElementById('edit-model').value = item.model || '';
             document.getElementById('editModal').style.display = 'block';
         }
 
         function closeEditModal() { document.getElementById('editModal').style.display = 'none'; }
 
         async function saveEdits() {
-            const userPassword = prompt("يرجى إدخال كلمة السر لاعتماد التعديلات:");
-            if (userPassword === null) return;
-            if (userPassword !== ADMIN_PASSWORD) {
-                alert("كلمة السر خاطئة!");
-                return;
-            }
+            const pass = prompt("كلمة السر:");
+            if (pass !== ADMIN_PASSWORD) return alert("خطأ!");
 
             const idx = document.getElementById('edit-idx').value;
             const updated = {
@@ -173,15 +181,11 @@
             btn.innerText = "جاري الحفظ..."; btn.disabled = true;
 
             try {
-                await fetch(scriptURL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    body: JSON.stringify(updated)
-                });
+                await fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(updated) });
                 db[idx] = {...db[idx], ...updated};
-                alert("تم التحديث بنجاح!");
+                alert("تم التحديث!");
                 closeEditModal();
-                doSearch();
+                searchByPlate() || searchByInfo();
             } catch(e) { alert("فشل الاتصال"); }
             finally { btn.innerText = "حفظ في جوجل شيت"; btn.disabled = false; }
         }
@@ -194,10 +198,8 @@
         }
 
         function confirmEntry() {
-            if(!activeCar) return alert("اختر سيارة أولاً");
-            const slot = document.getElementById('slotNo').value;
-            if(!slot) return alert("أدخل رقم الموقف");
-            alert(`تم تسجيل ${activeCar.plate} في موقف ${slot}`);
+            if(!activeCar) return alert("اختر سيارة");
+            alert("تم التسجيل بنجاح");
         }
 
         loadData();
