@@ -99,43 +99,60 @@
         const scriptURL = "https://script.google.com/macros/s/AKfycbz21z4_jviYamObvLbA6xVy87UR6PLe2jrEjJQ-mwZfDw-TNALRgr6dqhrP_HoXW4Ig/exec
 "; 
 
-        let db = [];
-        let logs = [];
-        let activeCar = null;
+const ADMIN_PASSWORD = "0809"; // استبدل 123 بكلمة السر التي تريدها
 
-        async function loadData() {
-            try {
-                const res = await fetch(scriptURL);
-                db = await res.json();
-                console.log("Data Loaded!");
-            } catch(e) { alert("خطأ في الاتصال بجوجل شيت"); }
-        }
+let db = [];
+let logs = [];
+let activeCar = null;
 
-        function doSearch() {
-            const q = document.getElementById('mainSearch').value.toLowerCase();
-            const container = document.getElementById('cardsResult');
-            container.innerHTML = '';
-            if(!q) return;
+// ... (دالة loadData و doSearch تبقى كما هي) ...
 
-            const filtered = db.filter(i => i.plate.toLowerCase().includes(q) || i.emp.toLowerCase().includes(q));
-            filtered.slice(0, 10).forEach(item => {
-                const realIdx = db.findIndex(x => x.plate === item.plate);
-                const card = document.createElement('div');
-                card.className = `car-card ${item.status.includes('نشط') ? 'active-status' : ''}`;
-                card.innerHTML = `
-                    <i class="fas fa-edit edit-icon" onclick="openEdit(${realIdx}); event.stopPropagation();"></i>
-                    <h3>${item.plate}</h3>
-                    <p><b>الموظف:</b> ${item.emp}</p>
-                    <p><b>الشركة:</b> ${item.client}</p>
-                `;
-                card.onclick = () => {
-                    activeCar = item;
-                    document.getElementById('selectedLabel').value = item.plate;
-                    switchPage('page-inventory', document.querySelectorAll('.nav-tab')[1]);
-                };
-                container.appendChild(card);
-            });
-        }
+async function saveEdits() {
+    // 1. طلب كلمة السر قبل البدء
+    const userPassword = prompt("يرجى إدخال كلمة السر لاعتماد التعديلات:");
+    
+    if (userPassword === null) return; // إذا ضغط إلغاء
+    
+    if (userPassword !== ADMIN_PASSWORD) {
+        alert("كلمة السر خاطئة! لا يمكن التعديل.");
+        return;
+    }
+
+    // 2. إذا كانت كلمة السر صحيحة، يبدأ إجراء الحفظ
+    const idx = document.getElementById('edit-index').value;
+    const updated = {
+        emp: document.getElementById('edit-emp').value,
+        plate: document.getElementById('edit-plate').value,
+        client: document.getElementById('edit-client').value,
+        model: document.getElementById('edit-model').value
+    };
+
+    const btn = document.getElementById('saveBtn');
+    const originalText = btn.innerText;
+    btn.innerText = "جاري الاعتماد والحفظ..."; 
+    btn.disabled = true;
+
+    try {
+        // إرسال البيانات إلى Google Sheets
+        await fetch(scriptURL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify(updated)
+        });
+
+        // تحديث قاعدة البيانات المحلية
+        db[idx] = {...db[idx], ...updated};
+        
+        alert("✅ تم التأكد من كلمة السر وتحديث البيانات في Google Sheets بنجاح");
+        closeEditModal();
+        doSearch();
+    } catch(e) { 
+        alert("❌ فشل الاتصال بقاعدة البيانات"); 
+    } finally { 
+        btn.innerText = originalText; 
+        btn.disabled = false; 
+    }
+}
 
         function openEdit(idx) {
             const item = db[idx];
