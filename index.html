@@ -3,56 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام فحص اللوحات الرقمي</title>
+    <title>رادار اللوحات السعودية - Expert</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
-        :root { --primary: #4f46e5; --glass: rgba(255, 255, 255, 0.95); }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #f1f5f9; color: #1e293b; }
+        :root { --primary: #4f46e5; --success: #10b981; --glass: rgba(255, 255, 255, 0.95); }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #f1f5f9; color: #1e293b; overflow-x: hidden; }
 
-        /* واجهة الكاميرا - تركيز رقمي */
+        /* واجهة الكاميرا - محاكاة اللوحة السعودية */
         #camera-ui { display: none; position: fixed; inset: 0; background: #000; z-index: 2000; }
         #video { width: 100%; height: 100%; object-fit: cover; }
         .cam-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .focus-frame { 
-            width: 70%; height: 90px; border: 4px solid #fff; border-radius: 12px; 
-            box-shadow: 0 0 0 5000px rgba(0,0,0,0.75); position: relative;
-        }
-        .focus-frame::after { content: "حدد الأرقام فقط"; position: absolute; top: -35px; width: 100%; text-align: center; color: #fff; font-weight: bold; }
-        .focus-frame.active { border-color: #fbbf24; animation: pulse 0.8s infinite; }
-        .focus-frame.found { border-color: #10b981; box-shadow: 0 0 40px #10b981, 0 0 0 5000px rgba(0,0,0,0.5); }
         
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        /* إطار التركيز مخصص للأرقام السفلية اليسرى */
+        .focus-frame { 
+            width: 60%; height: 80px; border: 4px solid #fff; border-radius: 12px; 
+            box-shadow: 0 0 0 5000px rgba(0,0,0,0.8); position: relative;
+            left: -10%; /* إزاحة طفيفة لليسار لتناسب مكان الأرقام */
+        }
+        .focus-frame::after { content: "ضع أرقام اللوحة الإنجليزية هنا"; position: absolute; top: -35px; width: 150%; right: -25%; text-align: center; color: #fff; font-size: 0.9rem; }
+        .focus-frame.scanning { border-color: #fbbf24; animation: pulse 0.8s infinite; }
+        .focus-frame.matched { border-color: var(--success); box-shadow: 0 0 40px var(--success), 0 0 0 5000px rgba(0,0,0,0.6); }
+        
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
-        /* واجهة التحكم */
+        /* التصميم العام */
         .container { max-width: 480px; margin: auto; padding: 20px; }
         .glass-panel {
-            background: var(--glass); backdrop-filter: blur(10px);
+            background: var(--glass); backdrop-filter: blur(15px);
             border-radius: 25px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 20px;
         }
-        .btn-scan {
+        .btn-main {
             background: var(--primary); color: white; border: none; width: 100%;
             padding: 18px; border-radius: 15px; font-weight: bold; font-size: 1.1rem; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
         }
         .search-inputs { margin-top: 15px; }
         .search-inputs input {
-            width: 100%; padding: 14px; margin-bottom: 8px; border-radius: 12px;
+            width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 12px;
             border: 1px solid #d1d5db; text-align: center; box-sizing: border-box; outline: none;
         }
 
-        /* بطاقة عرض البيانات التصميمية */
+        /* بطاقة عرض البيانات */
         .result-card {
             background: white; border-radius: 22px; padding: 20px; margin-top: 15px;
-            border-right: 8px solid var(--primary); box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            border-right: 8px solid var(--primary); box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             animation: slideUp 0.3s ease-out;
         }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } }
 
-        .data-row { display: flex; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #f8fafc; padding-bottom: 8px; }
+        .data-row { display: flex; align-items: center; margin-bottom: 14px; border-bottom: 1px solid #f8fafc; padding-bottom: 8px; }
         .data-row:last-child { border: none; }
-        .icon-box { width: 38px; height: 38px; background: #f0f7ff; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-left: 15px; font-size: 1.3rem; }
+        .icon { width: 40px; height: 40px; background: #f0f7ff; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-left: 15px; font-size: 1.3rem; }
         .label { font-size: 0.75rem; color: #64748b; display: block; }
         .value { font-weight: 700; color: #1e293b; font-size: 1rem; }
-        .status-pill { padding: 4px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; background: #dcfce7; color: #166534; }
+        .status-tag { padding: 4px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; background: #dcfce7; color: #166534; }
     </style>
 </head>
 <body>
@@ -61,20 +65,21 @@
         <video id="video" autoplay playsinline></video>
         <div class="cam-overlay">
             <div id="fBox" class="focus-frame"></div>
-            <button onclick="scanOnlyNumbers()" style="margin-top:50px; width:80px; height:80px; border-radius:50%; border:8px solid var(--primary); background:white; cursor:pointer;">🔢</button>
-            <button onclick="closeCam()" style="margin-top:20px; color:#fff; background:none; border:none;">إلغاء</button>
+            <button onclick="scanSaudiNumbers()" style="margin-top:60px; width:85px; height:85px; border-radius:50%; border:8px solid var(--primary); background:white; cursor:pointer; font-size:1.8rem;">🔢</button>
+            <button onclick="closeCam()" style="margin-top:30px; color:#fff; background:none; border:none; font-size:1rem;">إلغاء</button>
         </div>
     </div>
 
     <div class="container">
-        <header style="text-align:center; padding: 15px 0;">
-            <h2 style="color:var(--primary); margin:0;">رادار مواقف مجدول</h2>
+        <header style="text-align:center; padding: 10px 0 20px 0;">
+            <h2 style="color:var(--primary); margin:0;">فحص اللوحات السعودية</h2>
+            <p style="font-size:0.8rem; opacity:0.6;">نظام التعرف على الأرقام الإنجليزية</p>
         </header>
 
         <div class="glass-panel">
-            <button class="btn-scan" onclick="openCam()">📷 مسح الأرقام بالماسح</button>
+            <button class="btn-main" onclick="openCam()">📂 فتح الماسح الذكي</button>
             <div class="search-inputs">
-                <input id="pInp" type="text" placeholder="بحث برقم اللوحة (أرقام)" oninput="manualSearch()">
+                <input id="pInp" type="text" placeholder="بحث يدوي (أرقام فقط)" oninput="manualSearch()">
                 <input id="nInp" type="text" placeholder="بحث باسم الموظف" oninput="manualSearch()">
             </div>
         </div>
@@ -88,14 +93,15 @@
         let stream = null;
         let worker = null;
 
+        // 1. تحميل قاعدة البيانات
         async function loadData() {
-            try { const r = await fetch(SCRIPT_URL); dataStore = await r.json(); } catch(e) {}
+            try { const r = await fetch(SCRIPT_URL); dataStore = await r.json(); } catch(e) { console.error("Data error"); }
         }
 
+        // 2. تشغيل الكاميرا
         async function openCam() {
             if(!worker) {
                 worker = await Tesseract.createWorker('eng');
-                // تحديد القائمة البيضاء للأرقام فقط لزيادة الدقة 100%
                 await worker.setParameters({ tessedit_char_whitelist: '0123456789' });
             }
             document.getElementById('camera-ui').style.display = 'block';
@@ -103,41 +109,45 @@
             document.getElementById('video').srcObject = stream;
         }
 
-        async function scanOnlyNumbers() {
+        // 3. معالجة الربع السفلي الأيسر من اللوحة
+        async function scanSaudiNumbers() {
             const fBox = document.getElementById('fBox');
-            fBox.classList.add('active');
+            fBox.classList.add('scanning');
 
-            const video = document.getElementById('video');
+            const v = document.getElementById('video');
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
 
-            // التقاط منطقة الأرقام فقط (المربع)
-            canvas.width = 400; canvas.height = 100;
-            ctx.drawImage(video, video.videoWidth*0.15, video.videoHeight*0.45, video.videoWidth*0.7, video.videoHeight*0.1, 0, 0, 400, 100);
+            // قص منطقة الأرقام الإنجليزية فقط (الربع السفلي الأيسر)
+            canvas.width = 400; canvas.height = 120;
+            ctx.drawImage(v, v.videoWidth*0.1, v.videoHeight*0.5, v.videoWidth*0.4, v.videoHeight*0.25, 0, 0, 400, 120);
 
             const { data: { text } } = await worker.recognize(canvas);
-            const numOnly = text.replace(/[^0-9]/g, ''); // استخراج الأرقام فقط
+            const extractedNums = text.replace(/[^0-9]/g, '');
 
-            // البحث عن تطابق الأرقام في قاعدة البيانات
-            const match = dataStore.find(i => {
-                const dbP = String(i.plate || i['اللوحة'] || '').replace(/[^0-9]/g, '');
-                return dbP !== "" && (numOnly.includes(dbP) || dbP.includes(numOnly));
+            // دالة مطابقة ذكية تنظف الأرقام من أي حروف عربية أو إنجليزية مخزنة
+            const match = dataStore.find(item => {
+                const dbValue = String(item.plate || item['اللوحة'] || '').replace(/[^0-9]/g, '');
+                // تحويل الأرقام العربية (الهندية) إلى إنجليزية إذا وجدت في السجل
+                const normalizedDb = dbValue.replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
+                return normalizedDb !== "" && extractedNums.includes(normalizedDb) || normalizedDb.includes(extractedNums);
             });
 
-            if(match && numOnly.length > 1) {
-                fBox.className = 'focus-frame found';
+            if(match && extractedNums.length >= 2) {
+                fBox.className = 'focus-frame matched';
                 if(navigator.vibrate) navigator.vibrate(200);
                 setTimeout(() => { 
                     closeCam(); 
-                    document.getElementById('pInp').value = numOnly;
+                    document.getElementById('pInp').value = extractedNums;
                     displayResult([match]); 
-                }, 800);
+                }, 1000);
             } else {
-                fBox.classList.remove('active');
-                alert("لم يتم العثور على أرقام مطابقة: " + numOnly);
+                fBox.classList.remove('scanning');
+                alert("لم يتم العثور على تطابق للأرقام: " + extractedNums);
             }
         }
 
+        // 4. البحث اليدوي الموحد
         function manualSearch() {
             const p = document.getElementById('pInp').value.replace(/[^0-9]/g, '');
             const n = document.getElementById('nInp').value.toLowerCase();
@@ -145,24 +155,25 @@
             if(!p && !n) { document.getElementById('results').innerHTML = ''; return; }
 
             const filtered = dataStore.filter(i => {
-                const dbP = String(i.plate || i['اللوحة'] || '').replace(/[^0-9]/g, '');
+                const dbP = String(i.plate || i['اللوحة'] || '').replace(/[^0-9]/g, '').replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
                 const dbN = String(i.emp || i['الموظف'] || '').toLowerCase();
                 return dbP.includes(p) && dbN.includes(n);
             });
             displayResult(filtered);
         }
 
+        // 5. عرض البطاقة الكاملة بالأيقونات
         function displayResult(list) {
             const container = document.getElementById('results');
             container.innerHTML = '';
             list.forEach(item => {
                 container.innerHTML += `
                     <div class="result-card">
-                        <div class="data-row"><div class="icon-box">🏢</div><div><span class="label">العميل</span><span class="value">${item.client || item['العميل'] || '-'}</span></div></div>
-                        <div class="data-row"><div class="icon-box">🔢</div><div><span class="label">رقم اللوحة</span><span class="value">${item.plate || item['اللوحة'] || '-'}</span></div></div>
-                        <div class="data-row"><div class="icon-box">🚗</div><div><span class="label">المركبة</span><span class="value">${item.model || item['الموديل'] || '-'} (${item.color || item['اللون'] || '-'})</span></div></div>
-                        <div class="data-row"><div class="icon-box">👤</div><div><span class="label">الموظف</span><span class="value">${item.emp || item['الموظف'] || '-'}</span></div></div>
-                        <div class="data-row"><div class="icon-box">💡</div><div><span class="label">الحالة</span><span class="status-pill">${item.status || item['الحالة'] || '-'}</span></div></div>
+                        <div class="data-row"><div class="icon">🏢</div><div><span class="label">العميل</span><span class="value">${item.client || item['العميل'] || '-'}</span></div></div>
+                        <div class="data-row"><div class="icon">🔢</div><div><span class="label">رقم اللوحة</span><span class="value">${item.plate || item['اللوحة'] || '-'}</span></div></div>
+                        <div class="data-row"><div class="icon">🚗</div><div><span class="label">الموديل واللون</span><span class="value">${item.model || item['الموديل'] || '-'} | ${item.color || item['اللون'] || '-'}</span></div></div>
+                        <div class="data-row"><div class="icon">👤</div><div><span class="label">الموظف المسؤول</span><span class="value">${item.emp || item['الموظف'] || '-'}</span></div></div>
+                        <div class="data-row"><div class="icon">💡</div><div><span class="label">حالة المركبة</span><span class="status-tag">${item.status || item['الحالة'] || '-'}</span></div></div>
                     </div>`;
             });
         }
