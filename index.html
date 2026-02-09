@@ -3,177 +3,229 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مواقف مجدول - ماسح اللوحات الذكي</title>
+    <title>مواقف مجدول - التطور الذكي</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
-        :root { --accent: #4f46e5; --bg: #f8fafc; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; }
+        :root {
+            --primary: #6366f1;
+            --glass: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --text: #1e293b;
+        }
+
+        body {
+            margin: 0; font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #e0e7ff;
+            color: var(--text);
+            min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center;
+            overflow-x: hidden;
+        }
+
+        /* فقاعات سائلة في الخلفية */
+        .bg-blobs {
+            position: fixed; inset: 0; z-index: -1;
+            overflow: hidden; filter: blur(80px);
+        }
+        .blob {
+            position: absolute; width: 300px; height: 300px;
+            background: var(--primary); border-radius: 50%;
+            opacity: 0.4; animation: move 20s infinite alternate;
+        }
+        .blob-2 { background: #ec4899; left: 50%; animation-delay: -5s; }
+        @keyframes move { from { transform: translate(-20%, -20%); } to { transform: translate(50%, 50%); } }
+
+        .container { width: 100%; max-width: 450px; padding: 20px; box-sizing: border-box; }
+
+        /* التصميم الزجاجي */
+        .glass-panel {
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 30px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+        }
+
+        header { text-align: center; margin-bottom: 25px; }
+        header h1 { margin: 0; font-size: 1.5rem; color: var(--primary); letter-spacing: -1px; }
+
+        .search-group { margin-top: 15px; }
+        input {
+            width: 100%; padding: 15px; margin-bottom: 12px;
+            border-radius: 18px; border: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, 0.5);
+            font-size: 1rem; outline: none; transition: 0.3s;
+            box-sizing: border-box; text-align: center;
+        }
+        input:focus { border-color: var(--primary); background: white; }
+
+        /* الأزرار الطافية */
+        .fab-scan {
+            background: var(--primary); color: white; border: none;
+            width: 60px; height: 60px; border-radius: 50%;
+            font-size: 1.5rem; cursor: pointer;
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.4);
+            display: flex; align-items: center; justify-content: center;
+            margin: -30px auto 20px auto; position: relative; z-index: 10;
+        }
+
+        /* بطاقة بيانات العميل */
+        .client-card {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border-radius: 25px;
+            padding: 20px; margin-top: 15px;
+            border: 1px solid var(--glass-border);
+            animation: slideUp 0.4s ease;
+        }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card-row { display: flex; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 8px; }
+        .card-row:last-child { border: none; }
+        .label { font-size: 0.85rem; color: #64748b; }
+        .value { font-weight: 600; font-size: 0.95rem; }
+        .plate-badge { background: #1e293b; color: white; padding: 4px 12px; border-radius: 8px; font-family: monospace; }
         
-        /* واجهة الكاميرا */
-        #camera-ui { display: none; position: fixed; inset: 0; background: #000; z-index: 2000; }
+        .status-tag { padding: 4px 12px; border-radius: 50px; font-size: 0.8rem; }
+        .active { background: #dcfce7; color: #166534; }
+        .inactive { background: #fee2e2; color: #991b1b; }
+
+        /* كاميرا */
+        #camera-ui {
+            display: none; position: fixed; inset: 0; background: #000; z-index: 1000;
+        }
         #video { width: 100%; height: 100%; object-fit: cover; }
-        .overlay { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        .cam-overlay {
+            position: absolute; inset: 0; border: 40px solid rgba(0,0,0,0.6);
+            display: flex; align-items: center; justify-content: center;
         }
-        .scanner-frame { 
-            width: 85%; height: 120px; border: 3px solid #fff; border-radius: 12px;
-            box-shadow: 0 0 0 5000px rgba(0,0,0,0.6); position: relative;
-        }
-        .scanner-frame::after {
-            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
-            background: red; animation: scanAnim 2s infinite;
-        }
-        @keyframes scanAnim { 0% {top: 0;} 100% {top: 100%;} }
-
-        .controls { position: absolute; bottom: 40px; display: flex; gap: 30px; align-items: center; }
-        .shutter { width: 70px; height: 70px; background: white; border-radius: 50%; border: 5px solid rgba(255,255,255,0.3); cursor: pointer; }
-
-        /* الواجهة الرئيسية */
-        .container { max-width: 480px; margin: auto; padding: 15px; }
-        header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
-        .search-card { background: white; padding: 20px; border-radius: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
-        .btn-main { 
-            background: var(--accent); color: white; border: none; padding: 15px; 
-            border-radius: 15px; width: 100%; font-size: 1.1rem; font-weight: bold; 
-            margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 10px;
-        }
-        input { 
-            width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 12px; 
-            border: 1px solid #e2e8f0; text-align: center; box-sizing: border-box; font-size: 1rem;
-        }
-        .result-card { 
-            background: white; margin-top: 12px; padding: 15px; border-radius: 18px; 
-            border-right: 6px solid var(--accent); display: flex; justify-content: space-between; align-items: center;
-        }
-        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-        
-        #loading-text { display: none; color: var(--accent); font-weight: bold; margin: 10px 0; }
+        .cam-frame { width: 80%; height: 120px; border: 2px solid #fff; border-radius: 15px; }
     </style>
 </head>
 <body>
 
-<div id="camera-ui">
-    <video id="video" autoplay playsinline></video>
-    <div class="overlay">
-        <div class="scanner-frame"></div>
-        <div class="controls">
-            <button onclick="stopCamera()" style="background:none; border:none; color:white; font-size:1.1rem;">إلغاء</button>
-            <div class="shutter" onclick="capture()"></div>
-            <div style="width:40px"></div>
+    <div class="bg-blobs">
+        <div class="blob"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <div id="camera-ui">
+        <video id="video" autoplay playsinline></video>
+        <div class="cam-overlay">
+            <div class="cam-frame"></div>
+            <button onclick="capture()" style="position:absolute; bottom:50px; width:70px; height:70px; border-radius:50%; border:none; background:white;"></button>
+            <button onclick="stopCamera()" style="position:absolute; bottom:70px; right:30px; color:white; background:none; border:none;">إغاق</button>
         </div>
     </div>
-</div>
 
-<div class="container">
-    <header>
-        <h2 style="color: var(--accent);">مواقف مجدول</h2>
-        <button onclick="location.reload()" style="background:none; border:none; font-size:1.2rem;">🔄</button>
-    </header>
+    <div class="container">
+        <header>
+            <h1>مواقف مجدول <span>Expert</span></h1>
+        </header>
 
-    <div class="search-card">
-        <button class="btn-main" onclick="startCamera()">
-            <span>📷</span> تصوير اللوحة سريع
-        </button>
-        <div id="loading-text">جاري المعالجة الرقمية...</div>
-        <input id="pInp" type="text" placeholder="رقم اللوحة (أرقام أو حروف)">
-        <input id="eInp" type="text" placeholder="اسم الموظف">
+        <div class="glass-panel">
+            <button class="fab-scan" onclick="startCamera()">📷</button>
+            <div class="search-group">
+                <input id="pInp" type="text" placeholder="رقم اللوحة">
+                <input id="eInp" type="text" placeholder="اسم الموظف">
+            </div>
+            <div id="loader" style="display:none; text-align:center; font-size:0.8rem;">جاري التحليل الرقمي...</div>
+        </div>
+
+        <div id="results"></div>
     </div>
 
-    <div id="results"></div>
-</div>
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyCmZCoItc1KTDPP_afzdhC5T-Vz8z6e11iVN9etRXpqj7Ecfm1O5ml0uqWVX7nJPBx/exec";
+        let dataStore = [];
+        let stream = null;
 
-<script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyCmZCoItc1KTDPP_afzdhC5T-Vz8z6e11iVN9etRXpqj7Ecfm1O5ml0uqWVX7nJPBx/exec";
-    let dataStore = [];
-    let stream = null;
+        async function init() {
+            try {
+                const res = await fetch(SCRIPT_URL);
+                dataStore = await res.json();
+                render(dataStore);
+            } catch (e) { console.error("Data error"); }
+        }
 
-    async function init() {
-        try {
-            const res = await fetch(SCRIPT_URL);
-            dataStore = await res.json();
-            render(dataStore);
-        } catch (e) { document.getElementById('results').innerHTML = "خطأ في الاتصال بالبيانات"; }
-    }
-
-    function render(list) {
-        const out = document.getElementById('results');
-        out.innerHTML = list.length ? '' : '<p style="text-align:center; opacity:0.5;">لا توجد نتائج مطابقة</p>';
-        list.forEach(item => {
-            const card = document.createElement('div');
-            card.className = 'result-card';
-            card.innerHTML = `
-                <div>
-                    <div style="font-weight:900; font-size:1.2rem;">${item.plate || item['اللوحة']}</div>
-                    <div style="font-size:0.9rem; color:#64748b;">${item.emp || item['الموظف']}</div>
-                </div>
-                <div style="text-align:left">
-                    <span class="status-dot" style="background:${item.status === 'نشط' ? '#22c55e' : '#ef4444'}"></span>
-                </div>
-            `;
-            out.appendChild(card);
-        });
-    }
-
-    async function startCamera() {
-        document.getElementById('camera-ui').style.display = 'block';
-        try {
-            stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } } 
+        function render(list) {
+            const out = document.getElementById('results');
+            out.innerHTML = '';
+            list.forEach(item => {
+                const statusClass = (item.status || item['الحالة']) === 'نشط' ? 'active' : 'inactive';
+                const card = document.createElement('div');
+                card.className = 'client-card';
+                card.innerHTML = `
+                    <div class="card-row">
+                        <span class="label">🏢 العميل</span>
+                        <span class="value">${item.client || item['العميل'] || '-'}</span>
+                    </div>
+                    <div class="card-row">
+                        <span class="label">🔢 رقم اللوحة</span>
+                        <span class="value plate-badge">${item.plate || item['اللوحة'] || '-'}</span>
+                    </div>
+                    <div class="card-row">
+                        <span class="label">🚗 الموديل</span>
+                        <span class="value">${item.model || item['الموديل'] || '-'}</span>
+                    </div>
+                    <div class="card-row">
+                        <span class="label">🎨 اللون</span>
+                        <span class="value">${item.color || item['اللون'] || '-'}</span>
+                    </div>
+                    <div class="card-row">
+                        <span class="label">👤 الموظف</span>
+                        <span class="value">${item.emp || item['الموظف'] || '-'}</span>
+                    </div>
+                    <div class="card-row">
+                        <span class="label">💡 الحالة</span>
+                        <span class="status-tag ${statusClass}">${item.status || item['الحالة'] || '-'}</span>
+                    </div>
+                `;
+                out.appendChild(card);
             });
+        }
+
+        function doSearch() {
+            const pVal = document.getElementById('pInp').value.toLowerCase().replace(/\s+/g, '');
+            const eVal = document.getElementById('eInp').value.toLowerCase();
+            const filtered = dataStore.filter(i => {
+                const p = String(i.plate || i['اللوحة'] || '').toLowerCase().replace(/\s+/g, '');
+                const e = String(i.emp || i['الموظف'] || '').toLowerCase();
+                return p.includes(pVal) && e.includes(eVal);
+            });
+            render(filtered);
+        }
+
+        async function startCamera() {
+            document.getElementById('camera-ui').style.display = 'block';
+            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
             document.getElementById('video').srcObject = stream;
-        } catch (e) { alert("يرجى السماح بالوصول للكاميرا"); stopCamera(); }
-    }
+        }
 
-    function stopCamera() {
-        if(stream) stream.getTracks().forEach(t => t.stop());
-        document.getElementById('camera-ui').style.display = 'none';
-    }
+        function stopCamera() {
+            if(stream) stream.getTracks().forEach(t => t.stop());
+            document.getElementById('camera-ui').style.display = 'none';
+        }
 
-    async function capture() {
-        const video = document.getElementById('video');
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
+        async function capture() {
+            const video = document.getElementById('video');
+            const canvas = document.createElement('canvas');
+            canvas.width = 600; canvas.height = 300;
+            canvas.getContext('2d').drawImage(video, 0, 0, 600, 300);
+            stopCamera();
+            
+            document.getElementById('loader').style.display = 'block';
+            const result = await Tesseract.recognize(canvas, 'eng');
+            document.getElementById('pInp').value = result.data.text.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+            document.getElementById('loader').style.display = 'none';
+            doSearch();
+        }
 
-        // قص منطقة الإطار فقط لتحسين الدقة
-        const vW = video.videoWidth;
-        const vH = video.videoHeight;
-        canvas.width = 600;
-        canvas.height = 200;
-        
-        // رسم المنطقة الوسطى من الكاميرا
-        ctx.drawImage(video, vW*0.1, vH*0.4, vW*0.8, vH*0.2, 0, 0, 600, 200);
-        
-        stopCamera();
-        document.getElementById('loading-text').style.display = 'block';
-
-        // استخدام Tesseract مع دعم الإنجليزية فقط للأرقام والحروف لضمان دقة أعلى
-        // لأن الحروف العربية في اللوحات غالباً ما يتم تجاهلها برمجياً لسهولة المطابقة بالأرقام
-        const result = await Tesseract.recognize(canvas, 'eng');
-        
-        // تنظيف النص: نأخذ الحروف والأرقام الإنجليزية فقط
-        let detectedText = result.data.text.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-        
-        document.getElementById('pInp').value = detectedText;
-        document.getElementById('loading-text').style.display = 'none';
-        searchManual();
-    }
-
-    function searchManual() {
-        const pVal = document.getElementById('pInp').value.toLowerCase().replace(/\s+/g, '');
-        const eVal = document.getElementById('eInp').value.toLowerCase();
-        
-        const filtered = dataStore.filter(i => {
-            const p = String(i.plate || i['اللوحة'] || '').toLowerCase().replace(/\s+/g, '');
-            const e = String(i.emp || i['الموظف'] || '').toLowerCase();
-            return p.includes(pVal) && e.includes(eVal);
-        });
-        render(filtered);
-    }
-
-    document.getElementById('pInp').addEventListener('input', searchManual);
-    document.getElementById('eInp').addEventListener('input', searchManual);
-    window.onload = init;
-</script>
+        document.getElementById('pInp').addEventListener('input', doSearch);
+        document.getElementById('eInp').addEventListener('input', doSearch);
+        window.onload = init;
+    </script>
 </body>
 </html>
