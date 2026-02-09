@@ -3,186 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تطبيق مواقف مجدول - OCR</title>
-    
+    <title>مواقف مجدول - ماسح اللوحات الذكي</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-    
     <style>
-        :root {
-            --glass-bg: rgba(255, 255, 255, 0.9);
-            --glass-border: rgba(255, 255, 255, 0.6);
-            --text-color: #1e293b;
-            --accent: #4f46e5;
-            --bg-color: #f8fafc;
-            --container-width: 450px;
+        :root { --accent: #4f46e5; --bg: #f8fafc; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; }
+        
+        /* واجهة الكاميرا */
+        #camera-ui { display: none; position: fixed; inset: 0; background: #000; z-index: 2000; }
+        #video { width: 100%; height: 100%; object-fit: cover; }
+        .overlay { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
+        .scanner-frame { 
+            width: 85%; height: 120px; border: 3px solid #fff; border-radius: 12px;
+            box-shadow: 0 0 0 5000px rgba(0,0,0,0.6); position: relative;
+        }
+        .scanner-frame::after {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+            background: red; animation: scanAnim 2s infinite;
+        }
+        @keyframes scanAnim { 0% {top: 0;} 100% {top: 100%;} }
 
-        body.dark {
-            --glass-bg: rgba(30, 41, 59, 0.96);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --text-color: #f8fafc;
-            --bg-color: #0f172a;
-        }
+        .controls { position: absolute; bottom: 40px; display: flex; gap: 30px; align-items: center; }
+        .shutter { width: 70px; height: 70px; background: white; border-radius: 50%; border: 5px solid rgba(255,255,255,0.3); cursor: pointer; }
 
-        body {
-            margin: 0; font-family: 'Segoe UI', sans-serif;
-            background: var(--bg-color); color: var(--text-color);
-            display: flex; flex-direction: column; align-items: center;
+        /* الواجهة الرئيسية */
+        .container { max-width: 480px; margin: auto; padding: 15px; }
+        header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
+        .search-card { background: white; padding: 20px; border-radius: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .btn-main { 
+            background: var(--accent); color: white; border: none; padding: 15px; 
+            border-radius: 15px; width: 100%; font-size: 1.1rem; font-weight: bold; 
+            margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 10px;
         }
-
-        .page { width: 100%; max-width: var(--container-width); }
-
-        header {
-            background: var(--glass-bg); backdrop-filter: blur(15px);
-            padding: 15px; border-bottom: 1px solid var(--glass-border);
-            display: flex; justify-content: space-between; align-items: center;
-            position: sticky; top: 0; z-index: 100;
+        input { 
+            width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 12px; 
+            border: 1px solid #e2e8f0; text-align: center; box-sizing: border-box; font-size: 1rem;
         }
-
-        .search-box {
-            background: var(--glass-bg); padding: 20px; margin: 15px;
-            border-radius: 20px; border: 1px solid var(--glass-border);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        .result-card { 
+            background: white; margin-top: 12px; padding: 15px; border-radius: 18px; 
+            border-right: 6px solid var(--accent); display: flex; justify-content: space-between; align-items: center;
         }
-
-        .input-group { position: relative; margin-bottom: 10px; }
-
-        input {
-            width: 100%; padding: 14px; border-radius: 12px;
-            border: 1px solid rgba(0,0,0,0.1); font-size: 16px;
-            text-align: center; box-sizing: border-box; outline: none;
-        }
-
-        .scan-btn {
-            position: absolute; left: 10px; top: 50%;
-            transform: translateY(-50%); background: var(--accent);
-            color: white; border: none; padding: 6px 12px;
-            border-radius: 8px; cursor: pointer; font-size: 12px;
-        }
-
-        /* Camera Overlay */
-        #camera-ui {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: black; z-index: 1000; flex-direction: column;
-        }
-        video { width: 100%; height: 70%; object-fit: cover; }
-        .cam-controls {
-            height: 30%; display: flex; justify-content: center; align-items: center;
-            gap: 20px; background: #000;
-        }
-        .snap-btn {
-            width: 70px; height: 70px; border-radius: 50%; border: 5px solid white;
-            background: transparent; cursor: pointer;
-        }
-
-        .card {
-            background: var(--glass-bg); margin: 10px 15px; padding: 15px;
-            border-radius: 15px; border: 1px solid var(--glass-border);
-        }
-        .plate-box { font-weight: bold; font-size: 1.2rem; color: var(--accent); }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+        
+        #loading-text { display: none; color: var(--accent); font-weight: bold; margin: 10px 0; }
     </style>
 </head>
 <body>
 
-    <div id="camera-ui">
-        <video id="video" autoplay playsinline></video>
-        <div class="cam-controls">
-            <button onclick="stopCamera()" style="color:white; background:none; border:none;">إلغاء</button>
-            <button class="snap-btn" onclick="capture()"></button>
+<div id="camera-ui">
+    <video id="video" autoplay playsinline></video>
+    <div class="overlay">
+        <div class="scanner-frame"></div>
+        <div class="controls">
+            <button onclick="stopCamera()" style="background:none; border:none; color:white; font-size:1.1rem;">إلغاء</button>
+            <div class="shutter" onclick="capture()"></div>
             <div style="width:40px"></div>
         </div>
     </div>
+</div>
 
-    <div class="page">
-        <header>
-            <button onclick="document.body.classList.toggle('dark')">🌓</button>
-            <span style="font-weight:bold">مواقف مجدول Scan</span>
-            <button onclick="location.reload()">🔄</button>
-        </header>
+<div class="container">
+    <header>
+        <h2 style="color: var(--accent);">مواقف مجدول</h2>
+        <button onclick="location.reload()" style="background:none; border:none; font-size:1.2rem;">🔄</button>
+    </header>
 
-        <div class="search-box">
-            <div class="input-group">
-                <input id="pInp" type="text" placeholder="رقم اللوحة">
-                <button class="scan-btn" onclick="startCamera()">📷 مسح</button>
-            </div>
-            <input id="eInp" type="text" placeholder="اسم الموظف">
-        </div>
-
-        <div id="results"></div>
+    <div class="search-card">
+        <button class="btn-main" onclick="startCamera()">
+            <span>📷</span> تصوير اللوحة سريع
+        </button>
+        <div id="loading-text">جاري المعالجة الرقمية...</div>
+        <input id="pInp" type="text" placeholder="رقم اللوحة (أرقام أو حروف)">
+        <input id="eInp" type="text" placeholder="اسم الموظف">
     </div>
 
-    <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyCmZCoItc1KTDPP_afzdhC5T-Vz8z6e11iVN9etRXpqj7Ecfm1O5ml0uqWVX7nJPBx/exec";
-        let dataStore = [];
-        let stream = null;
+    <div id="results"></div>
+</div>
 
-        // Fetch Data
-        async function init() {
-            try {
-                const res = await fetch(SCRIPT_URL);
-                const raw = await res.json();
-                dataStore = raw.map(i => ({
-                    plateRaw: i.plate || i.اللوحة || '-',
-                    plateClean: String(i.plate || i.اللوحة || '').replace(/\s+/g, '').toLowerCase(),
-                    empRaw: i.emp || i.employee || i.الموظف || '-',
-                    empClean: String(i.emp || i.employee || i.الموظف || '').toLowerCase(),
-                    status: String(i.status || i.الحالة || '').toLowerCase()
-                }));
-                render(dataStore);
-            } catch (e) { console.error("Load failed"); }
-        }
+<script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyCmZCoItc1KTDPP_afzdhC5T-Vz8z6e11iVN9etRXpqj7Ecfm1O5ml0uqWVX7nJPBx/exec";
+    let dataStore = [];
+    let stream = null;
 
-        function render(list) {
-            const out = document.getElementById('results');
-            out.innerHTML = list.length ? '' : '<p style="text-align:center; opacity:0.5;">لا توجد نتائج</p>';
-            list.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `<div class="plate-box">${item.plateRaw}</div><div>${item.empRaw}</div>`;
-                out.appendChild(card);
+    async function init() {
+        try {
+            const res = await fetch(SCRIPT_URL);
+            dataStore = await res.json();
+            render(dataStore);
+        } catch (e) { document.getElementById('results').innerHTML = "خطأ في الاتصال بالبيانات"; }
+    }
+
+    function render(list) {
+        const out = document.getElementById('results');
+        out.innerHTML = list.length ? '' : '<p style="text-align:center; opacity:0.5;">لا توجد نتائج مطابقة</p>';
+        list.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'result-card';
+            card.innerHTML = `
+                <div>
+                    <div style="font-weight:900; font-size:1.2rem;">${item.plate || item['اللوحة']}</div>
+                    <div style="font-size:0.9rem; color:#64748b;">${item.emp || item['الموظف']}</div>
+                </div>
+                <div style="text-align:left">
+                    <span class="status-dot" style="background:${item.status === 'نشط' ? '#22c55e' : '#ef4444'}"></span>
+                </div>
+            `;
+            out.appendChild(card);
+        });
+    }
+
+    async function startCamera() {
+        document.getElementById('camera-ui').style.display = 'block';
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } } 
             });
-        }
-
-        function doSearch() {
-            const pVal = document.getElementById('pInp').value.toLowerCase().replace(/\s+/g, '');
-            const eVal = document.getElementById('eInp').value.toLowerCase();
-            const filtered = dataStore.filter(i => i.plateClean.includes(pVal) && i.empClean.includes(eVal));
-            render(filtered);
-        }
-
-        // Camera Logic
-        async function startCamera() {
-            document.getElementById('camera-ui').style.display = 'flex';
-            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
             document.getElementById('video').srcObject = stream;
-        }
+        } catch (e) { alert("يرجى السماح بالوصول للكاميرا"); stopCamera(); }
+    }
 
-        function stopCamera() {
-            stream.getTracks().forEach(track => track.stop());
-            document.getElementById('camera-ui').style.display = 'none';
-        }
+    function stopCamera() {
+        if(stream) stream.getTracks().forEach(t => t.stop());
+        document.getElementById('camera-ui').style.display = 'none';
+    }
 
-        async function capture() {
-            const video = document.getElementById('video');
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
-            
-            stopCamera();
-            
-            // Show processing message
-            document.getElementById('pInp').value = "جاري التعرف...";
-            
-            const result = await Tesseract.recognize(canvas, 'eng');
-            const cleanPlate = result.data.text.replace(/[^a-zA-Z0-9]/g, '');
-            document.getElementById('pInp').value = cleanPlate;
-            doSearch();
-        }
+    async function capture() {
+        const video = document.getElementById('video');
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
 
-        document.getElementById('pInp').addEventListener('input', doSearch);
-        document.getElementById('eInp').addEventListener('input', doSearch);
-        window.onload = init;
-    </script>
+        // قص منطقة الإطار فقط لتحسين الدقة
+        const vW = video.videoWidth;
+        const vH = video.videoHeight;
+        canvas.width = 600;
+        canvas.height = 200;
+        
+        // رسم المنطقة الوسطى من الكاميرا
+        ctx.drawImage(video, vW*0.1, vH*0.4, vW*0.8, vH*0.2, 0, 0, 600, 200);
+        
+        stopCamera();
+        document.getElementById('loading-text').style.display = 'block';
+
+        // استخدام Tesseract مع دعم الإنجليزية فقط للأرقام والحروف لضمان دقة أعلى
+        // لأن الحروف العربية في اللوحات غالباً ما يتم تجاهلها برمجياً لسهولة المطابقة بالأرقام
+        const result = await Tesseract.recognize(canvas, 'eng');
+        
+        // تنظيف النص: نأخذ الحروف والأرقام الإنجليزية فقط
+        let detectedText = result.data.text.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+        
+        document.getElementById('pInp').value = detectedText;
+        document.getElementById('loading-text').style.display = 'none';
+        searchManual();
+    }
+
+    function searchManual() {
+        const pVal = document.getElementById('pInp').value.toLowerCase().replace(/\s+/g, '');
+        const eVal = document.getElementById('eInp').value.toLowerCase();
+        
+        const filtered = dataStore.filter(i => {
+            const p = String(i.plate || i['اللوحة'] || '').toLowerCase().replace(/\s+/g, '');
+            const e = String(i.emp || i['الموظف'] || '').toLowerCase();
+            return p.includes(pVal) && e.includes(eVal);
+        });
+        render(filtered);
+    }
+
+    document.getElementById('pInp').addEventListener('input', searchManual);
+    document.getElementById('eInp').addEventListener('input', searchManual);
+    window.onload = init;
+</script>
 </body>
 </html>
