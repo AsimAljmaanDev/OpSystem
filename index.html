@@ -1,262 +1,188 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Link Expert - Majdoul Terminal</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق مواقف مجدول - OCR</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    
     <style>
         :root {
-            --bg: #000000;
-            --surface: #0a0a0a;
-            --glass: rgba(15, 15, 15, 0.85);
-            --gold: #d4af37;
-            --gold-light: #f1d592;
-            --gold-glow: rgba(212, 175, 55, 0.2);
-            --text: #ffffff;
-            --text-dim: #888888;
-            --danger: #ff3b30;
-            --success: #34c759;
-            --card-border: rgba(212, 175, 55, 0.3);
-            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --glass-bg: rgba(255, 255, 255, 0.9);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --text-color: #1e293b;
+            --accent: #4f46e5;
+            --bg-color: #f8fafc;
+            --container-width: 450px;
         }
 
-        [data-theme="light"] {
-            --bg: #f2f2f7;
-            --surface: #ffffff;
-            --glass: rgba(255, 255, 255, 0.9);
-            --gold: #996515;
-            --gold-light: #b8860b;
-            --gold-glow: rgba(153, 101, 21, 0.1);
-            --text: #1c1c1e;
-            --text-dim: #636366;
-            --card-border: rgba(153, 101, 21, 0.2);
+        body.dark {
+            --glass-bg: rgba(30, 41, 59, 0.96);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-color: #f8fafc;
+            --bg-color: #0f172a;
         }
 
         body {
-            margin: 0; font-family: -apple-system, system-ui, sans-serif;
-            background: var(--bg); color: var(--text); transition: var(--transition);
-            min-height: 100vh;
+            margin: 0; font-family: 'Segoe UI', sans-serif;
+            background: var(--bg-color); color: var(--text-color);
+            display: flex; flex-direction: column; align-items: center;
         }
+
+        .page { width: 100%; max-width: var(--container-width); }
 
         header {
-            padding: 50px 25px 20px; background: var(--glass); backdrop-filter: blur(25px);
-            position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--gold-glow);
+            background: var(--glass-bg); backdrop-filter: blur(15px);
+            padding: 15px; border-bottom: 1px solid var(--glass-border);
             display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 100;
         }
 
-        .logo-box { display: flex; align-items: center; gap: 12px; }
-        .crown-svg { width: 40px; height: 40px; fill: var(--gold); filter: drop-shadow(0 0 5px var(--gold-glow)); }
-        .logo-text h1 { margin: 0; font-size: 19px; font-weight: 900; color: var(--gold-light); letter-spacing: -0.5px; }
-        .logo-text span { font-size: 9px; letter-spacing: 3px; color: var(--gold); text-transform: uppercase; font-weight: 700; display: block; }
-
-        .theme-toggle {
-            width: 40px; height: 40px; border-radius: 12px; background: var(--gold-glow);
-            border: 1px solid var(--gold); color: var(--gold); display: flex; align-items: center; justify-content: center; cursor: pointer;
+        .search-box {
+            background: var(--glass-bg); padding: 20px; margin: 15px;
+            border-radius: 20px; border: 1px solid var(--glass-border);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
         }
 
-        .container { padding: 20px; max-width: 800px; margin: 0 auto; padding-bottom: 120px; }
+        .input-group { position: relative; margin-bottom: 10px; }
 
-        .search-wrap {
-            background: var(--glass); border-radius: 18px; padding: 12px 18px;
-            display: flex; align-items: center; border: 1px solid var(--gold-glow); margin-bottom: 25px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        }
-        .search-wrap input { background: none; border: none; color: var(--text); width: 100%; font-size: 16px; outline: none; margin-left: 10px; }
-
-        /* Full Data Card Design */
-        .asset-card {
-            background: var(--glass); border-radius: 25px; padding: 20px;
-            border: 1px solid var(--card-border); margin-bottom: 18px;
-            position: relative; transition: var(--transition);
-        }
-        .asset-card.revoked { border: 2px solid var(--danger); background: rgba(255, 59, 48, 0.05); }
-
-        .client-header { color: var(--gold); font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; }
-        .plate-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .plate-num { font-size: 28px; font-weight: 900; letter-spacing: 2px; color: var(--text); }
-        
-        .status-badge { font-size: 10px; font-weight: 900; padding: 4px 10px; border-radius: 8px; border: 1px solid currentColor; }
-
-        .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; border-top: 1px solid var(--gold-glow); padding-top: 15px; }
-        .data-item label { display: block; font-size: 9px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 4px; }
-        .data-item span { font-size: 14px; font-weight: 600; color: var(--text); }
-
-        nav {
-            position: fixed; bottom: 0; width: 100%; height: 85px; background: var(--glass);
-            backdrop-filter: blur(25px); border-top: 1px solid var(--gold-glow);
-            display: flex; justify-content: space-around; padding-top: 10px;
-        }
-        .nav-item { color: var(--text-dim); text-align: center; font-size: 10px; cursor: pointer; flex: 1; }
-        .nav-item.active { color: var(--gold); }
-        .nav-item i { font-size: 22px; margin-bottom: 4px; display: block; }
-
-        .fab {
-            position: fixed; bottom: 100px; right: 25px; width: 60px; height: 60px; border-radius: 20px;
-            background: var(--gold); color: #000; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 10px 20px var(--gold-glow); z-index: 1001;
+        input {
+            width: 100%; padding: 14px; border-radius: 12px;
+            border: 1px solid rgba(0,0,0,0.1); font-size: 16px;
+            text-align: center; box-sizing: border-box; outline: none;
         }
 
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
-        .modal-box { background: var(--surface); border-radius: 30px; width: 100%; max-width: 400px; padding: 30px; border: 1px solid var(--gold); }
-        .m-input { width: 100%; padding: 14px; background: var(--bg); border: 1px solid var(--card-border); border-radius: 12px; color: var(--text); margin-bottom: 12px; box-sizing: border-box; outline: none; }
+        .scan-btn {
+            position: absolute; left: 10px; top: 50%;
+            transform: translateY(-50%); background: var(--accent);
+            color: white; border: none; padding: 6px 12px;
+            border-radius: 8px; cursor: pointer; font-size: 12px;
+        }
+
+        /* Camera Overlay */
+        #camera-ui {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: black; z-index: 1000; flex-direction: column;
+        }
+        video { width: 100%; height: 70%; object-fit: cover; }
+        .cam-controls {
+            height: 30%; display: flex; justify-content: center; align-items: center;
+            gap: 20px; background: #000;
+        }
+        .snap-btn {
+            width: 70px; height: 70px; border-radius: 50%; border: 5px solid white;
+            background: transparent; cursor: pointer;
+        }
+
+        .card {
+            background: var(--glass-bg); margin: 10px 15px; padding: 15px;
+            border-radius: 15px; border: 1px solid var(--glass-border);
+        }
+        .plate-box { font-weight: bold; font-size: 1.2rem; color: var(--accent); }
     </style>
 </head>
-<body data-theme="dark">
+<body>
 
-    <header>
-        <div class="logo-box">
-            <svg class="crown-svg" viewBox="0 0 24 24">
-                <path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5M19 19C19 19.6 18.6 20 18 20H6C5.4 20 5 19.6 5 19V18H19V19Z" />
-            </svg>
-            <div class="logo-text">
-                <h1>Majdoul Terminal</h1>
-                <span>Link Expert</span>
-            </div>
-        </div>
-        <div class="theme-toggle" onclick="toggleTheme()"><i class="fa-solid fa-circle-half-stroke"></i></div>
-    </header>
-
-    <div class="container">
-        <div id="page-terminal">
-            <div class="search-wrap">
-                <i class="fa-solid fa-magnifying-glass" style="color:var(--gold)"></i>
-                <input type="text" id="masterSearch" placeholder="Search Client, Plate, or Employee..." oninput="performSearch()">
-            </div>
-
-            <div id="resultsArea">
-                <div style="text-align:center; padding:100px 0; opacity:0.2;">
-                    <i class="fa-solid fa-crown" style="font-size:60px;"></i>
-                    <p>Terminal Ready</p>
-                </div>
-            </div>
-        </div>
-
-        </div>
-
-    <div class="fab" onclick="openModal(true)"><i class="fa-solid fa-plus"></i></div>
-
-    <div id="mainModal" class="modal">
-        <div class="modal-box">
-            <h3 style="color:var(--gold); margin-top:0;">Asset Setup</h3>
-            <input type="hidden" id="f-idx"><input type="hidden" id="f-old-plate">
-            <input type="text" id="f-client" class="m-input" placeholder="CLIENT / COMPANY">
-            <input type="text" id="f-plate" class="m-input" placeholder="PLATE NUMBER">
-            <input type="text" id="f-model" class="m-input" placeholder="CAR MODEL">
-            <input type="text" id="f-color" class="m-input" placeholder="CAR COLOR">
-            <input type="text" id="f-emp" class="m-input" placeholder="EMPLOYEE NAME">
-            <select id="f-status" class="m-input">
-                <option value="Active">GRANT ACCESS</option>
-                <option value="Inactive">REVOKE ACCESS</option>
-            </select>
-            <button onclick="saveData()" style="width:100%; padding:16px; border-radius:12px; background:var(--gold); color:#000; font-weight:800; border:none; cursor:pointer;">SYNC CLOUD</button>
-            <p onclick="closeModal()" style="text-align:center; color:var(--text-dim); cursor:pointer; margin-top:15px;">Discard</p>
+    <div id="camera-ui">
+        <video id="video" autoplay playsinline></video>
+        <div class="cam-controls">
+            <button onclick="stopCamera()" style="color:white; background:none; border:none;">إلغاء</button>
+            <button class="snap-btn" onclick="capture()"></button>
+            <div style="width:40px"></div>
         </div>
     </div>
 
-    <nav>
-        <div class="nav-item active" onclick="switchTab('page-terminal', this)"><i class="fa-solid fa-shield-halved"></i>Terminal</div>
-        <div class="nav-item" onclick="location.reload()"><i class="fa-solid fa-rotate"></i>Reload</div>
-    </nav>
+    <div class="page">
+        <header>
+            <button onclick="document.body.classList.toggle('dark')">🌓</button>
+            <span style="font-weight:bold">مواقف مجدول Scan</span>
+            <button onclick="location.reload()">🔄</button>
+        </header>
+
+        <div class="search-box">
+            <div class="input-group">
+                <input id="pInp" type="text" placeholder="رقم اللوحة">
+                <button class="scan-btn" onclick="startCamera()">📷 مسح</button>
+            </div>
+            <input id="eInp" type="text" placeholder="اسم الموظف">
+        </div>
+
+        <div id="results"></div>
+    </div>
 
     <script>
-        const scriptURL = "https://script.google.com/macros/s/AKfycbzPo0RiY_A8MtF_zhnbmy9_gjcjRU7gtb3z6eoCO0ydZ4GndiqVYlq3vWj8SaZRsRx-/exec";
-        const ADMIN_PIN = "0809";
-        let db = [];
+        const SCRIPT_URL = "YOUR_SCRIPT_URL_HERE";
+        let dataStore = [];
+        let stream = null;
 
-        async function loadData() {
+        // Fetch Data
+        async function init() {
             try {
-                const res = await fetch(scriptURL);
-                db = await res.json();
-            } catch(e) { console.error("Cloud Error"); }
+                const res = await fetch(SCRIPT_URL);
+                const raw = await res.json();
+                dataStore = raw.map(i => ({
+                    plateRaw: i.plate || i.اللوحة || '-',
+                    plateClean: String(i.plate || i.اللوحة || '').replace(/\s+/g, '').toLowerCase(),
+                    empRaw: i.emp || i.employee || i.الموظف || '-',
+                    empClean: String(i.emp || i.employee || i.الموظف || '').toLowerCase(),
+                    status: String(i.status || i.الحالة || '').toLowerCase()
+                }));
+                render(dataStore);
+            } catch (e) { console.error("Load failed"); }
         }
 
-        function toggleTheme() {
-            const body = document.body;
-            body.setAttribute('data-theme', body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
-        }
-
-        function performSearch() {
-            const q = document.getElementById('masterSearch').value.trim().toLowerCase();
-            const container = document.getElementById('resultsArea');
-            if(!q) { container.innerHTML = '<div style="text-align:center; padding:100px 0; opacity:0.1;"><i class="fa-solid fa-crown" style="font-size:80px;"></i></div>'; return; }
-
-            const filtered = db.filter(i => 
-                String(i.plate).toLowerCase().includes(q) || 
-                String(i.emp).toLowerCase().includes(q) || 
-                String(i.client).toLowerCase().includes(q)
-            );
-            render(filtered);
-        }
-
-        function render(data) {
-            const container = document.getElementById('resultsArea');
-            container.innerHTML = '';
-            data.forEach(item => {
-                const isNo = String(item.status).toLowerCase().includes('inactive');
-                const idx = db.findIndex(x => x.plate === item.plate);
+        function render(list) {
+            const out = document.getElementById('results');
+            out.innerHTML = list.length ? '' : '<p style="text-align:center; opacity:0.5;">لا توجد نتائج</p>';
+            list.forEach(item => {
                 const card = document.createElement('div');
-                card.className = `asset-card ${isNo ? 'revoked' : ''}`;
-                
-                card.innerHTML = `
-                    <div class="client-header">${item.client || 'GUEST CLIENT'}</div>
-                    <div class="plate-row">
-                        <div class="plate-num">${item.plate}</div>
-                        <div class="status-badge" style="color:${isNo ? 'var(--danger)' : 'var(--success)'}">
-                            ${isNo ? 'REVOKED' : 'CLEAR'}
-                        </div>
-                    </div>
-                    <div class="data-grid">
-                        <div class="data-item"><label>Model</label><span>${item.model || '-'}</span></div>
-                        <div class="data-item"><label>Color</label><span>${item.color || '-'}</span></div>
-                        <div class="data-item" style="grid-column: span 2;"><label>Employee Name</label><span>${item.emp || '-'}</span></div>
-                    </div>
-                    <button onclick="openModal(false, ${idx})" style="width:100%; margin-top:15px; padding:12px; border-radius:12px; border:1px solid var(--gold); background:none; color:var(--gold); font-weight:700; cursor:pointer;">MANAGE ASSET</button>
-                `;
-                container.appendChild(card);
+                card.className = 'card';
+                card.innerHTML = `<div class="plate-box">${item.plateRaw}</div><div>${item.empRaw}</div>`;
+                out.appendChild(card);
             });
         }
 
-        function openModal(isNew, idx = null) {
-            if(isNew) {
-                const p = prompt("Admin PIN:"); if(p !== ADMIN_PIN) return;
-                document.getElementById('f-idx').value = "-1";
-                ['f-client', 'f-plate', 'f-model', 'f-color', 'f-emp'].forEach(f => document.getElementById(f).value = "");
-            } else {
-                const item = db[idx];
-                document.getElementById('f-idx').value = idx;
-                document.getElementById('f-old-plate').value = item.plate;
-                document.getElementById('f-client').value = item.client;
-                document.getElementById('f-plate').value = item.plate;
-                document.getElementById('f-model').value = item.model;
-                document.getElementById('f-color').value = item.color;
-                document.getElementById('f-emp').value = item.emp;
-                document.getElementById('f-status').value = String(item.status).includes('Inactive') ? 'Inactive' : 'Active';
-            }
-            document.getElementById('mainModal').style.display = 'flex';
+        function doSearch() {
+            const pVal = document.getElementById('pInp').value.toLowerCase().replace(/\s+/g, '');
+            const eVal = document.getElementById('eInp').value.toLowerCase();
+            const filtered = dataStore.filter(i => i.plateClean.includes(pVal) && i.empClean.includes(eVal));
+            render(filtered);
         }
 
-        function closeModal() { document.getElementById('mainModal').style.display = 'none'; }
-
-        async function saveData() {
-            const p = prompt("Final Sync Auth:"); if(p !== ADMIN_PIN) return;
-            const idx = document.getElementById('f-idx').value;
-            const data = {
-                oldPlate: document.getElementById('f-old-plate').value,
-                client: document.getElementById('f-client').value,
-                plate: document.getElementById('f-plate').value.toUpperCase(),
-                model: document.getElementById('f-model').value,
-                color: document.getElementById('f-color').value,
-                emp: document.getElementById('f-emp').value,
-                status: document.getElementById('f-status').value
-            };
-            fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
-            if(idx === "-1") db.push(data); else db[idx] = data;
-            alert("Terminal Cloud Synced");
-            closeModal();
-            performSearch();
+        // Camera Logic
+        async function startCamera() {
+            document.getElementById('camera-ui').style.display = 'flex';
+            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+            document.getElementById('video').srcObject = stream;
         }
 
-        loadData();
+        function stopCamera() {
+            stream.getTracks().forEach(track => track.stop());
+            document.getElementById('camera-ui').style.display = 'none';
+        }
+
+        async function capture() {
+            const video = document.getElementById('video');
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            
+            stopCamera();
+            
+            // Show processing message
+            document.getElementById('pInp').value = "جاري التعرف...";
+            
+            const result = await Tesseract.recognize(canvas, 'eng');
+            const cleanPlate = result.data.text.replace(/[^a-zA-Z0-9]/g, '');
+            document.getElementById('pInp').value = cleanPlate;
+            doSearch();
+        }
+
+        document.getElementById('pInp').addEventListener('input', doSearch);
+        document.getElementById('eInp').addEventListener('input', doSearch);
+        window.onload = init;
     </script>
 </body>
 </html>
